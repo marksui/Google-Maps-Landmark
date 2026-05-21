@@ -463,7 +463,10 @@ h1 {
 }
 
 .openmap-popup .leaflet-popup-content {
+  max-height: min(300px, calc(56dvh - 112px));
   margin: 12px;
+  overflow: auto;
+  scrollbar-color: #3c4247 transparent;
 }
 
 .leaflet-popup-content-wrapper,

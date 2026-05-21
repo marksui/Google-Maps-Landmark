@@ -760,6 +760,7 @@
   let markerApi = null;
   let openMapLayer = null;
   let openMapRenderTimer = 0;
+  let openMapPopupOpen = false;
 
   initialize();
 
@@ -1028,6 +1029,11 @@
       zoom: DEFAULT_ZOOM,
       minZoom: 2,
       maxZoom: 18,
+      inertia: true,
+      inertiaDeceleration: 3400,
+      markerZoomAnimation: true,
+      wheelDebounceTime: 36,
+      wheelPxPerZoomLevel: 96,
       zoomControl: true,
       worldCopyJump: true,
       preferCanvas: true,
@@ -1041,6 +1047,10 @@
     openMapLayer = L.layerGroup().addTo(map);
     map.on("zoomend moveend", scheduleOpenMapRender);
     map.on("popupopen", bindOpenMapPopupActions);
+    map.on("popupclose", () => {
+      openMapPopupOpen = false;
+      scheduleOpenMapRender();
+    });
     renderMarkers();
     fitVisibleMarkers();
 
@@ -1345,9 +1355,21 @@
     renderGoogleMarkers();
   }
 
-  function scheduleOpenMapRender() {
+  function scheduleOpenMapRender(event = {}) {
+    const isMoveEnd = event.type === "moveend";
+
+    if (openMapPopupOpen || (isMoveEnd && !shouldRenderOpenMapIndividuals())) {
+      return;
+    }
+
     window.clearTimeout(openMapRenderTimer);
-    openMapRenderTimer = window.setTimeout(renderOpenMapMarkers, 80);
+    openMapRenderTimer = window.setTimeout(() => {
+      if (openMapPopupOpen) {
+        return;
+      }
+
+      renderOpenMapMarkers();
+    }, 80);
   }
 
   function renderOpenMapMarkers() {
@@ -1634,8 +1656,15 @@
   }
 
   function openOpenMapPopup(marker, landmark) {
+    window.clearTimeout(openMapRenderTimer);
+    openMapRenderTimer = 0;
+    openMapPopupOpen = true;
     marker.bindPopup(createPopup(landmark), {
       className: "openmap-popup",
+      autoPanPadding: [24, 24],
+      closeOnClick: false,
+      keepInView: true,
+      maxHeight: 300,
       maxWidth: 320,
       minWidth: 260,
     });
@@ -1643,7 +1672,16 @@
   }
 
   function bindOpenMapPopupActions(event) {
-    event.popup.getElement()?.querySelectorAll(".city-popup-item").forEach((button) => {
+    openMapPopupOpen = true;
+    const popupElement = event.popup.getElement();
+
+    if (!popupElement) {
+      return;
+    }
+
+    L.DomEvent.disableClickPropagation(popupElement);
+    L.DomEvent.disableScrollPropagation(popupElement);
+    popupElement.querySelectorAll(".city-popup-item").forEach((button) => {
       button.addEventListener("click", () => {
         focusOpenMapLandmark(button.dataset.landmarkId);
       });
@@ -1724,6 +1762,7 @@
       return;
     }
 
+    scrollMapIntoView();
     const landmark = visibleLandmarks.find((item) => item.id === id) || landmarks.find((item) => item.id === id);
     if (!landmark) {
       return;
@@ -1731,15 +1770,33 @@
 
     const target = [landmark.plotLat, landmark.plotLng];
     const targetZoom = Math.max(map.getZoom() || DEFAULT_ZOOM, 14);
-    map.flyTo(target, targetZoom, { duration: 0.35 });
-
-    window.setTimeout(() => {
+    let didOpen = false;
+    const openAfterMove = () => {
+      if (didOpen) {
+        return;
+      }
+      didOpen = true;
       renderOpenMapMarkers();
       const entry = markersById.get(id);
       if (entry) {
         openOpenMapPopup(entry.marker, entry.landmark);
       }
-    }, 380);
+    };
+
+    map.once("moveend", openAfterMove);
+    map.flyTo(target, targetZoom, { duration: 0.35 });
+    window.setTimeout(openAfterMove, 700);
+  }
+
+  function scrollMapIntoView() {
+    if (!window.matchMedia("(max-width: 860px)").matches) {
+      return;
+    }
+
+    elements.mapPane.scrollIntoView({
+      block: "start",
+      behavior: "smooth",
+    });
   }
 
   function fitVisibleMarkers() {
