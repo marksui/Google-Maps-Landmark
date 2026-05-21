@@ -706,6 +706,11 @@
     mapPane: document.getElementById("mapPane"),
     map: document.getElementById("map"),
     appTitle: document.getElementById("appTitle"),
+    mapHelp: document.getElementById("mapHelp"),
+    mapHelpText: document.getElementById("mapHelpText"),
+    mapHelpPopover: document.getElementById("mapHelpPopover"),
+    mapHelpTitle: document.getElementById("mapHelpTitle"),
+    mapHelpBody: document.getElementById("mapHelpBody"),
     fitVisibleText: document.getElementById("fitVisibleText"),
     statsSection: document.getElementById("statsSection"),
     controlsSection: document.getElementById("controlsSection"),
@@ -777,6 +782,9 @@
     elements.categoryFilter.addEventListener("change", render);
     elements.resetFilters.addEventListener("click", resetFilters);
     elements.fitVisible.addEventListener("click", fitVisibleMarkers);
+    elements.mapHelp.addEventListener("click", toggleMapHelp);
+    document.addEventListener("click", closeMapHelpFromOutside);
+    document.addEventListener("keydown", closeMapHelpOnEscape);
     elements.toggleList.addEventListener("click", () => {
       elements.landmarkList.classList.toggle("collapsed");
     });
@@ -838,7 +846,12 @@
     elements.landmarkList.setAttribute("aria-label", t("listLabel"));
     elements.mapNote.setAttribute("aria-label", t("noteLabel"));
     elements.fitVisible.title = t("fitVisible");
+    elements.mapHelp.title = t("noteTitle");
+    elements.mapHelp.setAttribute("aria-label", t("noteTitle"));
     elements.appTitle.textContent = t("appTitle");
+    elements.mapHelpText.textContent = t("noteTitle");
+    elements.mapHelpTitle.textContent = t("noteTitle");
+    elements.mapHelpBody.textContent = t(noteBodyKeyForProvider());
     elements.fitVisibleText.textContent = t("fitVisible");
     elements.visibleCountLabel.textContent = t("statLandmarks");
     elements.cityCountLabel.textContent = t("statCities");
@@ -924,6 +937,35 @@
     }
 
     return "noteBodyOpenMap";
+  }
+
+  function toggleMapHelp(event) {
+    event.stopPropagation();
+    const isOpen = elements.mapHelpPopover.classList.toggle("open");
+    elements.mapHelp.setAttribute("aria-expanded", String(isOpen));
+  }
+
+  function closeMapHelpFromOutside(event) {
+    if (
+      !elements.mapHelpPopover.classList.contains("open") ||
+      elements.mapHelp.contains(event.target) ||
+      elements.mapHelpPopover.contains(event.target)
+    ) {
+      return;
+    }
+
+    closeMapHelp();
+  }
+
+  function closeMapHelpOnEscape(event) {
+    if (event.key === "Escape") {
+      closeMapHelp();
+    }
+  }
+
+  function closeMapHelp() {
+    elements.mapHelpPopover.classList.remove("open");
+    elements.mapHelp.setAttribute("aria-expanded", "false");
   }
 
   function normalizeLanguage(value) {
