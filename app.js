@@ -299,6 +299,7 @@
   ];
 
   const cityCoordinates = window.CITY_COORDS || {};
+  const landmarkMedia = window.LANDMARK_MEDIA || {};
   const categoryKeys = Object.keys(CATEGORY_DEFINITIONS);
   const categoryPriority = [
     "faith",
@@ -419,14 +420,16 @@
         const coordinates = cityCoordinates[currentCity];
         const category = detectCategory(line);
         const placeIcon = detectPlaceIcon(line, category);
+        const id = slugify(`${currentContinent}-${currentCountry}-${currentCity}-${line}-${records.length}`);
         const record = {
-          id: slugify(`${currentContinent}-${currentCountry}-${currentCity}-${line}-${records.length}`),
+          id,
           name: line,
           continent: currentContinent,
           country: currentCountry,
           city: currentCity,
           category,
           placeIcon,
+          media: landmarkMedia[id],
           lat: coordinates.lat,
           lng: coordinates.lng,
           searchText: `${line} ${currentCity} ${currentCountry} ${currentContinent}`.toLowerCase(),
@@ -513,6 +516,10 @@
   }
 
   function createDescription(landmark) {
+    if (landmark.media?.description) {
+      return landmark.media.description;
+    }
+
     const cityCountry = `${landmark.city}，${landmark.country}`;
     const descriptions = {
       museum: `${landmark.name} 是位于 ${cityCountry} 的博物馆或美术馆类地标，适合了解当地艺术、历史、科学或文化收藏。`,
@@ -585,7 +592,7 @@
 
     visibleLandmarks.forEach((landmark) => {
       const marker = L.marker([landmark.plotLat, landmark.plotLng], {
-        icon: createMarkerIcon(landmark.placeIcon),
+        icon: createMarkerIcon(landmark),
         title: landmark.name,
       }).bindPopup(createPopup(landmark));
       markersById.set(landmark.id, marker);
@@ -602,7 +609,7 @@
       row.type = "button";
       row.className = "landmark-row";
       row.innerHTML = `
-        ${placeIconMarkup(landmark.placeIcon, "row-icon")}
+        ${placeIconMarkup(landmark, "row-icon")}
         <span>
           <span class="row-title">${escapeHtml(landmark.name)}</span>
           <span class="row-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)} · ${escapeHtml(category.label)}</span>
@@ -645,9 +652,10 @@
   }
 
   function createMarkerIcon(categoryKey) {
+    const landmark = typeof categoryKey === "string" ? { placeIcon: categoryKey } : categoryKey;
     return L.divIcon({
       className: "",
-      html: placeIconMarkup(categoryKey, "landmark-marker"),
+      html: placeIconMarkup(landmark, "landmark-marker"),
       iconSize: [30, 30],
       iconAnchor: [15, 15],
       popupAnchor: [0, -14],
@@ -657,15 +665,28 @@
   function createPopup(landmark) {
     const category = CATEGORY_DEFINITIONS[landmark.category] || CATEGORY_DEFINITIONS.landmark;
     const mapsQuery = encodeURIComponent(`${landmark.name}, ${landmark.city}, ${landmark.country}`);
+    const mediaFigure = landmark.media?.thumbnail
+      ? `
+        <figure class="popup-media">
+          <img src="${escapeHtml(landmark.media.thumbnail)}" alt="${escapeHtml(landmark.name)}" loading="lazy" />
+          ${
+            landmark.media.pageUrl
+              ? `<figcaption><a href="${escapeHtml(landmark.media.pageUrl)}" target="_blank" rel="noreferrer">Wikipedia / Wikimedia</a></figcaption>`
+              : ""
+          }
+        </figure>
+      `
+      : "";
     return `
       <article class="popup-card">
         <div class="popup-head">
-          ${placeIconMarkup(landmark.placeIcon, "popup-icon", landmark.name)}
+          ${placeIconMarkup(landmark, "popup-icon", landmark.name)}
           <div>
             <h2 class="popup-title">${escapeHtml(landmark.name)}</h2>
             <p class="popup-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)}</p>
           </div>
         </div>
+        ${mediaFigure}
         <p class="popup-meta">${escapeHtml(landmark.continent)} · ${escapeHtml(category.label)}</p>
         <p class="popup-description">${escapeHtml(landmark.description)}</p>
         <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${mapsQuery}" target="_blank" rel="noreferrer">
@@ -676,13 +697,17 @@
     `;
   }
 
-  function placeIconMarkup(iconKey, className, altText = "") {
-    const icon = PLACE_ICONS[iconKey] || PLACE_ICONS.generic;
+  function placeIconMarkup(landmarkOrIconKey, className, altText = "") {
+    const landmark =
+      typeof landmarkOrIconKey === "string" ? { placeIcon: landmarkOrIconKey } : landmarkOrIconKey || {};
+    const icon = PLACE_ICONS[landmark.placeIcon] || PLACE_ICONS.generic;
+    const imageUrl = landmark.media?.thumbnail || icon.url;
     const alt = altText ? escapeHtml(`${altText} icon`) : "";
     const hidden = altText ? "" : ' aria-hidden="true"';
+    const photoClass = landmark.media?.thumbnail ? " landmark-photo-icon" : "";
     return `
-      <span class="${className}" style="--marker-color:${icon.color}"${hidden}>
-        <img src="${icon.url}" alt="${alt}" loading="lazy" />
+      <span class="${className}${photoClass}" style="--marker-color:${icon.color}"${hidden}>
+        <img src="${escapeHtml(imageUrl)}" alt="${alt}" loading="lazy" />
       </span>
     `;
   }
