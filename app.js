@@ -1,6 +1,9 @@
 (function () {
   const DEFAULT_LANGUAGE = "zh";
   const LANGUAGE_STORAGE = "landmarkMapLanguage";
+  const DEFAULT_MAP_PROVIDER = "offline";
+  const MAP_PROVIDER_STORAGE = "landmarkMapProvider";
+  const MAP_PROVIDERS = ["offline", "google"];
   const SUPPORTED_LANGUAGES = {
     zh: { label: "中文", htmlLang: "zh-CN", mapsLanguage: "zh-CN", locale: "zh-CN" },
     en: { label: "English", htmlLang: "en", mapsLanguage: "en", locale: "en-US" },
@@ -81,6 +84,9 @@
       statCities: "城市",
       statCountries: "国家/地区",
       language: "语言",
+      mapProvider: "地图来源",
+      providerOffline: "本地离线",
+      providerGoogle: "Google 官方",
       search: "搜索",
       searchPlaceholder: "城市、国家、地标名称",
       continent: "洲",
@@ -92,7 +98,9 @@
       allCountries: "全部国家/地区",
       allCategories: "全部图标类型",
       noteTitle: "说明",
-      noteBody:
+      noteBodyOffline:
+        "当前使用本地离线示意地图，不加载 Google Maps API；灰白地标 miniature 来自本地 SVG，点位使用城市级坐标展开。",
+      noteBodyGoogle:
         "地图底图由 Google Maps 官方 API 实时渲染；列表点位使用城市级坐标展开，点击点位可查看图片、分类和一句短介绍。",
       apiKeyLabel: "Google Maps API key",
       apiKeyButton: "加载官方地图",
@@ -103,6 +111,8 @@
       apiLoadFailure: "Google Maps 加载失败，请检查 key、Maps JavaScript API 和来源限制。",
       apiInvalidKey: "Google Maps key 无效，或 Maps JavaScript API 没有启用。",
       apiLoadMapFirst: "先加载 Google Maps 官方地图。",
+      googleUnavailable: "Google 地图没加载成功，已切回本地离线地图。",
+      closePopup: "关闭",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "在 Google Maps 打开",
       continents: {
@@ -154,6 +164,9 @@
       statCities: "Cities",
       statCountries: "Countries/regions",
       language: "Language",
+      mapProvider: "Map source",
+      providerOffline: "Local offline",
+      providerGoogle: "Google official",
       search: "Search",
       searchPlaceholder: "City, country, or landmark",
       continent: "Continent",
@@ -165,7 +178,9 @@
       allCountries: "All countries/regions",
       allCategories: "All icon types",
       noteTitle: "Note",
-      noteBody:
+      noteBodyOffline:
+        "The current map is a local offline schematic. It does not load Google Maps API; gray landmark miniatures are local SVG files and points use city-level anchors.",
+      noteBodyGoogle:
         "The base map is rendered live by the official Google Maps API. List points use city-level anchors, and each popup shows an image, category, and short description.",
       apiKeyLabel: "Google Maps API key",
       apiKeyButton: "Load official map",
@@ -176,6 +191,8 @@
       apiLoadFailure: "Google Maps failed to load. Check the key, Maps JavaScript API, and referrer restrictions.",
       apiInvalidKey: "The Google Maps key is invalid, or Maps JavaScript API is not enabled.",
       apiLoadMapFirst: "Load the official Google map first.",
+      googleUnavailable: "Google Maps did not load, so the app switched back to the local offline map.",
+      closePopup: "Close",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Open in Google Maps",
       continents: {
@@ -227,6 +244,9 @@
       statCities: "都市",
       statCountries: "国/地域",
       language: "言語",
+      mapProvider: "地図ソース",
+      providerOffline: "ローカルオフライン",
+      providerGoogle: "Google 公式",
       search: "検索",
       searchPlaceholder: "都市、国、ランドマーク名",
       continent: "大陸",
@@ -238,7 +258,9 @@
       allCountries: "すべての国/地域",
       allCategories: "すべての種類",
       noteTitle: "説明",
-      noteBody:
+      noteBodyOffline:
+        "現在の地図はローカルのオフライン模式図です。Google Maps API は読み込まず、灰色のランドマーク miniature はローカル SVG、地点は都市レベルの座標で配置しています。",
+      noteBodyGoogle:
         "ベースマップは Google Maps 公式 API でリアルタイムに描画されます。一覧の地点は都市レベルの座標をもとに配置され、ポップアップには画像、分類、短い説明が表示されます。",
       apiKeyLabel: "Google Maps API キー",
       apiKeyButton: "公式地図を読み込む",
@@ -249,6 +271,8 @@
       apiLoadFailure: "Google Maps を読み込めません。キー、Maps JavaScript API、参照元制限を確認してください。",
       apiInvalidKey: "Google Maps キーが無効、または Maps JavaScript API が有効になっていません。",
       apiLoadMapFirst: "先に Google 公式地図を読み込んでください。",
+      googleUnavailable: "Google Maps を読み込めなかったため、ローカルのオフライン地図に切り替えました。",
+      closePopup: "閉じる",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Google Maps で開く",
       continents: {
@@ -300,6 +324,9 @@
       statCities: "Ciudades",
       statCountries: "Países/regiones",
       language: "Idioma",
+      mapProvider: "Fuente del mapa",
+      providerOffline: "Local sin conexión",
+      providerGoogle: "Google oficial",
       search: "Buscar",
       searchPlaceholder: "Ciudad, país o lugar",
       continent: "Continente",
@@ -311,7 +338,9 @@
       allCountries: "Todos los países/regiones",
       allCategories: "Todos los tipos",
       noteTitle: "Nota",
-      noteBody:
+      noteBodyOffline:
+        "El mapa actual es un esquema local sin conexión. No carga Google Maps API; las miniaturas grises son SVG locales y los puntos usan coordenadas a nivel de ciudad.",
+      noteBodyGoogle:
         "El mapa base se renderiza en tiempo real con la API oficial de Google Maps. Los puntos de la lista usan coordenadas a nivel de ciudad, y cada ventana muestra imagen, categoría y una breve descripción.",
       apiKeyLabel: "Clave de API de Google Maps",
       apiKeyButton: "Cargar mapa oficial",
@@ -322,6 +351,8 @@
       apiLoadFailure: "Google Maps no pudo cargarse. Revisa la clave, Maps JavaScript API y las restricciones de referencia.",
       apiInvalidKey: "La clave de Google Maps no es válida o Maps JavaScript API no está habilitada.",
       apiLoadMapFirst: "Carga primero el mapa oficial de Google.",
+      googleUnavailable: "Google Maps no se cargó, así que la app volvió al mapa local sin conexión.",
+      closePopup: "Cerrar",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Abrir en Google Maps",
       continents: {
@@ -669,6 +700,8 @@
     countryCountLabel: document.getElementById("countryCountLabel"),
     languageLabel: document.getElementById("languageLabel"),
     languageSelect: document.getElementById("languageSelect"),
+    mapProviderLabel: document.getElementById("mapProviderLabel"),
+    mapProviderSelect: document.getElementById("mapProviderSelect"),
     searchLabel: document.getElementById("searchLabel"),
     continentLabel: document.getElementById("continentLabel"),
     countryLabel: document.getElementById("countryLabel"),
@@ -699,6 +732,7 @@
   };
 
   let currentLanguage = getInitialLanguage();
+  let currentProvider = getInitialProvider();
   let apiKeyStatus = { key: "apiLocalOnly", isError: false };
   const regionNamesCache = new Map();
   const landmarks = addCityOffsets(parseLandmarks(window.LANDMARK_SOURCE || ""));
@@ -710,14 +744,17 @@
   let infoWindow = null;
   let mapsApi = null;
   let markerApi = null;
+  let offlinePopup = null;
 
   initialize();
 
   function initialize() {
     buildLanguageSelect();
+    buildProviderSelect();
     applyLanguage();
 
     elements.languageSelect.addEventListener("change", handleLanguageChange);
+    elements.mapProviderSelect.addEventListener("change", handleProviderChange);
     elements.searchInput.addEventListener("input", render);
     elements.continentFilter.addEventListener("change", render);
     elements.countryFilter.addEventListener("change", render);
@@ -743,7 +780,7 @@
     });
 
     render();
-    initializeGoogleMap(getStoredGoogleMapsKey());
+    initializeMapProvider();
   }
 
   function handleLanguageChange() {
@@ -757,6 +794,15 @@
 
     applyLanguage();
     render();
+  }
+
+  function handleProviderChange() {
+    currentProvider = MAP_PROVIDERS.includes(elements.mapProviderSelect.value)
+      ? elements.mapProviderSelect.value
+      : DEFAULT_MAP_PROVIDER;
+    localStorage.setItem(MAP_PROVIDER_STORAGE, currentProvider);
+    applyLanguage();
+    initializeMapProvider();
   }
 
   function applyLanguage() {
@@ -782,6 +828,7 @@
     elements.cityCountLabel.textContent = t("statCities");
     elements.countryCountLabel.textContent = t("statCountries");
     elements.languageLabel.textContent = t("language");
+    elements.mapProviderLabel.textContent = t("mapProvider");
     elements.searchLabel.textContent = t("search");
     elements.searchInput.placeholder = t("searchPlaceholder");
     elements.continentLabel.textContent = t("continent");
@@ -790,9 +837,10 @@
     elements.resetFiltersText.textContent = t("reset");
     elements.toggleListText.textContent = t("list");
     elements.mapNoteTitle.textContent = t("noteTitle");
-    elements.mapNoteBody.textContent = t("noteBody");
+    elements.mapNoteBody.textContent = t(currentProvider === "google" ? "noteBodyGoogle" : "noteBodyOffline");
     elements.apiKeyLabel.textContent = t("apiKeyLabel");
     elements.apiKeyButtonText.textContent = t("apiKeyButton");
+    buildProviderSelect();
 
     buildSelect(
       elements.continentFilter,
@@ -827,6 +875,14 @@
     elements.languageSelect.value = currentLanguage;
   }
 
+  function buildProviderSelect() {
+    elements.mapProviderSelect.replaceChildren(
+      new Option(t("providerOffline"), "offline"),
+      new Option(t("providerGoogle"), "google"),
+    );
+    elements.mapProviderSelect.value = currentProvider;
+  }
+
   function getInitialLanguage() {
     let storedLanguage = "";
 
@@ -838,6 +894,18 @@
 
     const browserLanguage = navigator.languages?.[0] || navigator.language || DEFAULT_LANGUAGE;
     return normalizeLanguage(storedLanguage || browserLanguage);
+  }
+
+  function getInitialProvider() {
+    let storedProvider = "";
+
+    try {
+      storedProvider = localStorage.getItem(MAP_PROVIDER_STORAGE) || "";
+    } catch (error) {
+      storedProvider = "";
+    }
+
+    return MAP_PROVIDERS.includes(storedProvider) ? storedProvider : DEFAULT_MAP_PROVIDER;
   }
 
   function normalizeLanguage(value) {
@@ -903,7 +971,64 @@
     return [name, city, country, continent, category, ...localizedTerms].join(" ").toLowerCase();
   }
 
+  function initializeMapProvider() {
+    closeOfflinePopup();
+
+    if (currentProvider === "google") {
+      initializeGoogleMap(getStoredGoogleMapsKey());
+      return;
+    }
+
+    initializeOfflineMap();
+  }
+
+  function initializeOfflineMap(messageKey = "") {
+    clearGoogleMarkers();
+    map = null;
+    infoWindow = null;
+    hideApiKeyPanel();
+    elements.map.className = "offline-map";
+    elements.map.replaceChildren(createOfflineMapSurface(), createOfflinePopupElement());
+    renderMarkers();
+
+    if (messageKey) {
+      showMapToast(messageKey);
+    }
+  }
+
+  function createOfflineMapSurface() {
+    const surface = document.createElement("div");
+    surface.className = "offline-map-surface";
+    surface.innerHTML = `
+      <span class="offline-grid" aria-hidden="true"></span>
+      <span class="offline-land offline-land-north-america" aria-hidden="true"></span>
+      <span class="offline-land offline-land-south-america" aria-hidden="true"></span>
+      <span class="offline-land offline-land-europe" aria-hidden="true"></span>
+      <span class="offline-land offline-land-africa" aria-hidden="true"></span>
+      <span class="offline-land offline-land-asia" aria-hidden="true"></span>
+      <span class="offline-land offline-land-oceania" aria-hidden="true"></span>
+      <span class="offline-map-label offline-map-label-na">${escapeHtml(continentLabelFor("North America"))}</span>
+      <span class="offline-map-label offline-map-label-sa">${escapeHtml(continentLabelFor("South America"))}</span>
+      <span class="offline-map-label offline-map-label-eu">${escapeHtml(continentLabelFor("Europe"))}</span>
+      <span class="offline-map-label offline-map-label-af">${escapeHtml(continentLabelFor("Africa"))}</span>
+      <span class="offline-map-label offline-map-label-as">${escapeHtml(continentLabelFor("Asia"))}</span>
+      <span class="offline-map-label offline-map-label-oc">${escapeHtml(continentLabelFor("Oceania"))}</span>
+    `;
+    return surface;
+  }
+
+  function createOfflinePopupElement() {
+    offlinePopup = document.createElement("div");
+    offlinePopup.className = "offline-popup hidden";
+    offlinePopup.setAttribute("role", "dialog");
+    return offlinePopup;
+  }
+
   async function initializeGoogleMap(apiKey) {
+    if (currentProvider !== "google") {
+      return;
+    }
+
     if (!apiKey) {
       showApiKeyPanel("apiEnterKey", false);
       return;
@@ -915,6 +1040,8 @@
       await loadGoogleMapsApi(apiKey);
       mapsApi = await google.maps.importLibrary("maps");
       markerApi = await google.maps.importLibrary("marker");
+      elements.map.className = "";
+      elements.map.replaceChildren();
       map = new mapsApi.Map(elements.map, {
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
@@ -935,6 +1062,10 @@
     } catch (error) {
       console.error(error);
       showApiKeyPanel("apiLoadFailure", true);
+      currentProvider = "offline";
+      localStorage.setItem(MAP_PROVIDER_STORAGE, currentProvider);
+      applyLanguage();
+      initializeOfflineMap("googleUnavailable");
     }
   }
 
@@ -949,6 +1080,18 @@
 
     googleLoaderPromise = new Promise((resolve, reject) => {
       const callbackName = "__googleMapsLandmarkReady";
+      let settled = false;
+      const fail = (error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        delete window[callbackName];
+        googleLoaderPromise = null;
+        reject(error);
+      };
+      const timeout = setTimeout(() => {
+        fail(new Error("Google Maps JavaScript API timed out."));
+      }, 12000);
       const params = new URLSearchParams({
         key: apiKey,
         loading: "async",
@@ -961,14 +1104,20 @@
       const script = document.createElement("script");
       script.async = true;
       script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
-      script.onerror = () => reject(new Error("Google Maps JavaScript API could not load."));
+      script.onerror = () => {
+        fail(new Error("Google Maps JavaScript API could not load."));
+      };
       window[callbackName] = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
         delete window[callbackName];
         loadedGoogleMapsKey = apiKey;
         resolve();
       };
       window.gm_authFailure = () => {
         showApiKeyPanel("apiInvalidKey", true);
+        fail(new Error("Google Maps authentication failed."));
       };
       document.head.appendChild(script);
     });
@@ -1058,6 +1207,7 @@
           country: currentCountry,
           city: currentCity,
           category,
+          iconPath: `assets/miniatures/landmarks/${id}.svg`,
           media: landmarkMedia[id],
           lat: coordinates.lat,
           lng: coordinates.lng,
@@ -1139,6 +1289,15 @@
   }
 
   function renderMarkers() {
+    if (currentProvider === "offline") {
+      renderOfflineMarkers();
+      return;
+    }
+
+    renderGoogleMarkers();
+  }
+
+  function renderGoogleMarkers() {
     markersById.forEach(({ marker }) => {
       marker.map = null;
     });
@@ -1156,6 +1315,34 @@
         content: createMapMarkerContent(landmark),
       });
       marker.addListener("click", () => openInfoWindow(marker, landmark));
+      markersById.set(landmark.id, { marker, landmark });
+    });
+  }
+
+  function renderOfflineMarkers() {
+    const surface = elements.map.querySelector(".offline-map-surface");
+
+    if (!surface) {
+      return;
+    }
+
+    surface.querySelectorAll(".offline-marker").forEach((marker) => marker.remove());
+    markersById.clear();
+
+    visibleLandmarks.forEach((landmark) => {
+      const marker = document.createElement("button");
+      const { x, y } = projectCoordinates(landmark.plotLat, landmark.plotLng);
+      marker.type = "button";
+      marker.className = "offline-marker";
+      marker.title = landmark.name;
+      marker.style.left = `${x}%`;
+      marker.style.top = `${y}%`;
+      marker.innerHTML = `
+        <img src="${escapeHtml(landmark.iconPath)}" alt="" aria-hidden="true" loading="lazy" />
+        <span>${escapeHtml(labelText(landmark.name))}</span>
+      `;
+      marker.addEventListener("click", () => openOfflinePopup(marker, landmark));
+      surface.appendChild(marker);
       markersById.set(landmark.id, { marker, landmark });
     });
   }
@@ -1259,6 +1446,55 @@
     `;
   }
 
+  function openOfflinePopup(marker, landmark) {
+    if (!offlinePopup) {
+      return;
+    }
+
+    markersById.forEach(({ marker: itemMarker }) => {
+      itemMarker.classList?.remove("active");
+    });
+    marker.classList.add("active");
+    offlinePopup.innerHTML = `
+      <button class="offline-popup-close" type="button" aria-label="${escapeHtml(t("closePopup"))}">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      ${createPopup(landmark)}
+    `;
+    offlinePopup.style.left = marker.style.left;
+    offlinePopup.style.top = marker.style.top;
+    offlinePopup.classList.remove("hidden");
+    offlinePopup.querySelector(".offline-popup-close")?.addEventListener("click", closeOfflinePopup);
+  }
+
+  function closeOfflinePopup() {
+    if (offlinePopup) {
+      offlinePopup.classList.add("hidden");
+      offlinePopup.replaceChildren();
+    }
+    markersById.forEach(({ marker }) => {
+      marker.classList?.remove("active");
+    });
+  }
+
+  function showMapToast(messageKey) {
+    const toast = document.createElement("div");
+    toast.className = "map-toast";
+    toast.textContent = t(messageKey);
+    elements.map.appendChild(toast);
+    window.setTimeout(() => toast.remove(), 4200);
+  }
+
+  function projectCoordinates(lat, lng) {
+    const x = Math.min(98, Math.max(2, ((lng + 180) / 360) * 100));
+    const y = Math.min(96, Math.max(4, ((90 - lat) / 180) * 100));
+    return { x, y };
+  }
+
+  function labelText(name) {
+    return name.replace(/\s+[–|].*$/, "").replace(/\([^)]*\)/g, "").trim();
+  }
+
   function openInfoWindow(marker, landmark) {
     if (!infoWindow) {
       return;
@@ -1293,6 +1529,14 @@
   }
 
   function focusLandmark(id) {
+    if (currentProvider === "offline") {
+      const entry = markersById.get(id);
+      if (entry) {
+        openOfflinePopup(entry.marker, entry.landmark);
+      }
+      return;
+    }
+
     if (!map) {
       showApiKeyPanel("apiLoadMapFirst", false);
       return;
@@ -1307,6 +1551,12 @@
   }
 
   function fitVisibleMarkers() {
+    if (currentProvider === "offline") {
+      closeOfflinePopup();
+      renderOfflineMarkers();
+      return;
+    }
+
     if (!map || !mapsApi?.LatLngBounds) {
       showApiKeyPanel("apiLoadMapFirst", false);
       return;
@@ -1335,6 +1585,15 @@
         map.setZoom(12);
       }
     });
+  }
+
+  function clearGoogleMarkers() {
+    markersById.forEach(({ marker }) => {
+      if (marker && "map" in marker) {
+        marker.map = null;
+      }
+    });
+    markersById.clear();
   }
 
   function resetFilters() {

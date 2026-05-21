@@ -4,7 +4,9 @@ A static landmark map for the Google Maps Miniatures list.
 
 ## Open
 
-Open `index.html` in a browser. Enter a Google Maps JavaScript API key when prompted; the key is stored only in local browser storage and is not committed to the repo.
+Open `index.html` in a browser. The default map source is **Local offline**, so it works without a Google Maps API key and uses the local gray landmark miniature SVG files.
+
+If you switch the map source to **Google official**, enter a Google Maps JavaScript API key when prompted; the key is stored only in local browser storage and is not committed to the repo.
 
 You can also load a key once from the URL:
 
@@ -12,7 +14,7 @@ You can also load a key once from the URL:
 index.html?googleMapsKey=YOUR_API_KEY
 ```
 
-The app uses the official Google Maps JavaScript API with the `hybrid` map type so Google's own map labels, POIs, and landmark rendering come from Google at runtime.
+The Google mode uses the official Google Maps JavaScript API with the `hybrid` map type so Google's own map labels, POIs, and landmark rendering come from Google at runtime. The local offline mode does not load Google Maps or store Google map assets.
 
 ## Languages
 
@@ -22,8 +24,9 @@ The site supports Chinese, English, Japanese, and Spanish from the language sele
 
 - 766 landmarks from the provided list
 - 107 city anchor points across North America, Europe, Asia, South America, Africa, and Oceania
-- Official Google Maps runtime rendering for the map surface
-- Lightweight result markers for the provided landmark list
+- A local offline schematic map with local gray landmark miniature markers
+- Official Google Maps runtime rendering for the map surface when Google mode is selected
+- Lightweight result markers for the provided landmark list in Google mode
 - Landmark images for 764 of 766 popup cards, crawled from Wikipedia, Wikidata, and Wikimedia Commons
 - Search plus language, continent, country/region, and icon-type filters
 - A Google Maps search link in each popup
@@ -39,4 +42,4 @@ Run this to refresh landmark thumbnails and summaries:
 node scripts/fetch-landmark-media.mjs
 ```
 
-Google does not publish a single offline download pack for the proprietary Maps landmark miniatures. This app does not scrape or store those assets; it lets Google Maps render the official map layer live through the Maps JavaScript API.
+Google does not publish a single offline download pack for the proprietary Maps landmark miniatures. This app does not scrape or store those assets; local offline mode uses project-generated SVG miniatures, while Google mode lets Google Maps render the official map layer live through the Maps JavaScript API.
