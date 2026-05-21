@@ -343,6 +343,77 @@ h1 {
   background: #d9e5ef;
 }
 
+.openmap {
+  background: #d9e5ef;
+}
+
+.openmap .leaflet-container,
+.leaflet-container {
+  font: inherit;
+}
+
+.openmap-marker-wrap {
+  border: 0;
+  background: transparent;
+}
+
+.openmap-landmark-marker,
+.openmap-city-marker {
+  display: grid;
+  justify-items: center;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.16s ease;
+}
+
+.openmap-landmark-marker {
+  grid-template-rows: 28px auto;
+  width: 96px;
+}
+
+.openmap-landmark-marker img {
+  display: block;
+  width: 46px;
+  height: 30px;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 1px 1px rgba(32, 33, 36, 0.75))
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
+}
+
+.openmap-landmark-marker > span {
+  display: -webkit-box;
+  max-width: 92px;
+  overflow: hidden;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1.05;
+  text-shadow:
+    -1px -1px 0 #202124,
+    1px -1px 0 #202124,
+    -1px 1px 0 #202124,
+    1px 1px 0 #202124,
+    0 2px 3px rgba(0, 0, 0, 0.45);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.openmap-city-marker {
+  width: 112px;
+}
+
+.openmap-marker-wrap:hover .openmap-landmark-marker,
+.openmap-marker-wrap:focus-visible .openmap-landmark-marker,
+.openmap-marker-wrap:hover .openmap-city-marker,
+.openmap-marker-wrap:focus-visible .openmap-city-marker {
+  transform: scale(1.12);
+}
+
+.openmap-popup .leaflet-popup-content {
+  margin: 12px;
+}
+
 .offline-map {
   position: relative;
   display: grid;

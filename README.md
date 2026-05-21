@@ -4,7 +4,9 @@ A static landmark map for the Google Maps Miniatures list.
 
 ## Open
 
-Open `index.html` in a browser. The default map source is **Local offline**, so it works without a Google Maps API key. It starts with city-level clusters for performance, then expands local gray landmark miniature SVG files when search or filters narrow the results.
+Open `index.html` in a browser. The default map source is **OpenStreetMap**, powered by Leaflet, so it supports normal map dragging, wheel zoom, double-click zoom, zoom controls, and fitting the current results without a Google Maps API key. It starts with city-level clusters for performance, then expands local gray landmark miniature SVG files when you zoom in or narrow the results.
+
+You can switch the map source to **Local offline** if you need the fully local schematic fallback.
 
 If you switch the map source to **Google official**, enter a Google Maps JavaScript API key when prompted; the key is stored only in local browser storage and is not committed to the repo.
 
@@ -24,7 +26,8 @@ The site supports Chinese, English, Japanese, and Spanish from the language sele
 
 - 766 landmarks from the provided list
 - 107 city anchor points across North America, Europe, Asia, South America, Africa, and Oceania
-- A local offline schematic map with lightweight city clusters and local gray landmark miniature markers for narrowed results
+- An OpenStreetMap/Leaflet map with normal interactive zoom and pan behavior
+- A local offline schematic map fallback with lightweight city clusters and local gray landmark miniature markers for narrowed results
 - Official Google Maps runtime rendering for the map surface when Google mode is selected
 - Lightweight result markers for the provided landmark list in Google mode
 - Landmark images for 764 of 766 popup cards, crawled from Wikipedia, Wikidata, and Wikimedia Commons

@@ -1,10 +1,12 @@
 (function () {
   const DEFAULT_LANGUAGE = "zh";
   const LANGUAGE_STORAGE = "landmarkMapLanguage";
-  const DEFAULT_MAP_PROVIDER = "offline";
+  const DEFAULT_MAP_PROVIDER = "openmap";
   const MAP_PROVIDER_STORAGE = "landmarkMapProvider";
-  const MAP_PROVIDERS = ["offline", "google"];
+  const MAP_PROVIDERS = ["openmap", "offline", "google"];
   const OFFLINE_INDIVIDUAL_LIMIT = 140;
+  const OPENMAP_INDIVIDUAL_LIMIT = 180;
+  const OPENMAP_INDIVIDUAL_ZOOM = 8;
   const SUPPORTED_LANGUAGES = {
     zh: { label: "中文", htmlLang: "zh-CN", mapsLanguage: "zh-CN", locale: "zh-CN" },
     en: { label: "English", htmlLang: "en", mapsLanguage: "en", locale: "en-US" },
@@ -86,6 +88,7 @@
       statCountries: "国家/地区",
       language: "语言",
       mapProvider: "地图来源",
+      providerOpenMap: "OpenStreetMap",
       providerOffline: "本地离线",
       providerGoogle: "Google 官方",
       search: "搜索",
@@ -99,6 +102,8 @@
       allCountries: "全部国家/地区",
       allCategories: "全部图标类型",
       noteTitle: "说明",
+      noteBodyOpenMap:
+        "当前使用 OpenStreetMap/Leaflet 地图，可正常拖动、滚轮缩放、双击缩放和框选当前结果；低缩放按城市聚合，放大后展开本地灰白 miniature。",
       noteBodyOffline:
         "当前使用本地离线示意地图，不加载 Google Maps API；默认按城市聚合防止卡死，搜索或筛选后展开单个灰白 miniature。",
       noteBodyGoogle:
@@ -113,9 +118,10 @@
       apiInvalidKey: "Google Maps key 无效，或 Maps JavaScript API 没有启用。",
       apiLoadMapFirst: "先加载 Google Maps 官方地图。",
       googleUnavailable: "Google 地图没加载成功，已切回本地离线地图。",
+      openMapUnavailable: "OpenStreetMap 地图组件没加载成功，已切回本地离线地图。",
       closePopup: "关闭",
       clusterSummary: (count, city) => `${city} · ${count} 个地标`,
-      zoomPrompt: "搜索或筛选后会展开单个地标 miniature。",
+      zoomPrompt: "点击城市或继续放大会展开单个地标 miniature。",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "在 Google Maps 打开",
       continents: {
@@ -168,6 +174,7 @@
       statCountries: "Countries/regions",
       language: "Language",
       mapProvider: "Map source",
+      providerOpenMap: "OpenStreetMap",
       providerOffline: "Local offline",
       providerGoogle: "Google official",
       search: "Search",
@@ -181,6 +188,8 @@
       allCountries: "All countries/regions",
       allCategories: "All icon types",
       noteTitle: "Note",
+      noteBodyOpenMap:
+        "The current map uses OpenStreetMap with Leaflet, so dragging, wheel zoom, double-click zoom, and fitting results behave like a real map. Low zooms cluster by city; zooming in expands local gray miniatures.",
       noteBodyOffline:
         "The current map is a local offline schematic. It does not load Google Maps API; it clusters by city by default and expands gray miniatures after search or filtering.",
       noteBodyGoogle:
@@ -195,9 +204,10 @@
       apiInvalidKey: "The Google Maps key is invalid, or Maps JavaScript API is not enabled.",
       apiLoadMapFirst: "Load the official Google map first.",
       googleUnavailable: "Google Maps did not load, so the app switched back to the local offline map.",
+      openMapUnavailable: "OpenStreetMap did not load, so the app switched back to the local offline map.",
       closePopup: "Close",
       clusterSummary: (count, city) => `${city} · ${count} landmarks`,
-      zoomPrompt: "Search or filter to expand individual landmark miniatures.",
+      zoomPrompt: "Click the city or keep zooming to expand individual landmark miniatures.",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Open in Google Maps",
       continents: {
@@ -250,6 +260,7 @@
       statCountries: "国/地域",
       language: "言語",
       mapProvider: "地図ソース",
+      providerOpenMap: "OpenStreetMap",
       providerOffline: "ローカルオフライン",
       providerGoogle: "Google 公式",
       search: "検索",
@@ -263,6 +274,8 @@
       allCountries: "すべての国/地域",
       allCategories: "すべての種類",
       noteTitle: "説明",
+      noteBodyOpenMap:
+        "現在の地図は OpenStreetMap と Leaflet を使用しており、ドラッグ、ホイールズーム、ダブルクリックズーム、結果へのフィットが通常の地図として動作します。低ズームでは都市単位で集約し、拡大するとローカルの灰色 miniature を表示します。",
       noteBodyOffline:
         "現在の地図はローカルのオフライン模式図です。Google Maps API は読み込まず、初期表示は都市ごとに集約し、検索や絞り込み後に灰色の miniature を展開します。",
       noteBodyGoogle:
@@ -277,9 +290,10 @@
       apiInvalidKey: "Google Maps キーが無効、または Maps JavaScript API が有効になっていません。",
       apiLoadMapFirst: "先に Google 公式地図を読み込んでください。",
       googleUnavailable: "Google Maps を読み込めなかったため、ローカルのオフライン地図に切り替えました。",
+      openMapUnavailable: "OpenStreetMap を読み込めなかったため、ローカルのオフライン地図に切り替えました。",
       closePopup: "閉じる",
       clusterSummary: (count, city) => `${city} · ${count} 件のランドマーク`,
-      zoomPrompt: "検索または絞り込みで個別のランドマーク miniature を展開します。",
+      zoomPrompt: "都市をクリックするか、さらに拡大すると個別のランドマーク miniature が表示されます。",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Google Maps で開く",
       continents: {
@@ -332,6 +346,7 @@
       statCountries: "Países/regiones",
       language: "Idioma",
       mapProvider: "Fuente del mapa",
+      providerOpenMap: "OpenStreetMap",
       providerOffline: "Local sin conexión",
       providerGoogle: "Google oficial",
       search: "Buscar",
@@ -345,6 +360,8 @@
       allCountries: "Todos los países/regiones",
       allCategories: "Todos los tipos",
       noteTitle: "Nota",
+      noteBodyOpenMap:
+        "El mapa actual usa OpenStreetMap con Leaflet, así que arrastrar, hacer zoom con la rueda, doble clic y ajustar resultados funcionan como en un mapa real. En zoom bajo agrupa por ciudad; al acercarte despliega miniaturas grises locales.",
       noteBodyOffline:
         "El mapa actual es un esquema local sin conexión. No carga Google Maps API; agrupa por ciudad al inicio y despliega miniaturas grises al buscar o filtrar.",
       noteBodyGoogle:
@@ -359,9 +376,10 @@
       apiInvalidKey: "La clave de Google Maps no es válida o Maps JavaScript API no está habilitada.",
       apiLoadMapFirst: "Carga primero el mapa oficial de Google.",
       googleUnavailable: "Google Maps no se cargó, así que la app volvió al mapa local sin conexión.",
+      openMapUnavailable: "OpenStreetMap no se cargó, así que la app volvió al mapa local sin conexión.",
       closePopup: "Cerrar",
       clusterSummary: (count, city) => `${city} · ${count} lugares`,
-      zoomPrompt: "Busca o filtra para desplegar miniaturas individuales.",
+      zoomPrompt: "Haz clic en la ciudad o sigue acercándote para desplegar miniaturas individuales.",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Abrir en Google Maps",
       continents: {
@@ -754,6 +772,8 @@
   let mapsApi = null;
   let markerApi = null;
   let offlinePopup = null;
+  let openMapLayer = null;
+  let openMapRenderTimer = 0;
 
   initialize();
 
@@ -796,7 +816,7 @@
     currentLanguage = normalizeLanguage(elements.languageSelect.value);
     localStorage.setItem(LANGUAGE_STORAGE, currentLanguage);
 
-    if (map || window.google?.maps?.importLibrary) {
+    if (currentProvider === "google" && (map || window.google?.maps?.importLibrary)) {
       window.location.reload();
       return;
     }
@@ -846,7 +866,7 @@
     elements.resetFiltersText.textContent = t("reset");
     elements.toggleListText.textContent = t("list");
     elements.mapNoteTitle.textContent = t("noteTitle");
-    elements.mapNoteBody.textContent = t(currentProvider === "google" ? "noteBodyGoogle" : "noteBodyOffline");
+    elements.mapNoteBody.textContent = t(noteBodyKeyForProvider());
     elements.apiKeyLabel.textContent = t("apiKeyLabel");
     elements.apiKeyButtonText.textContent = t("apiKeyButton");
     buildProviderSelect();
@@ -886,6 +906,7 @@
 
   function buildProviderSelect() {
     elements.mapProviderSelect.replaceChildren(
+      new Option(t("providerOpenMap"), "openmap"),
       new Option(t("providerOffline"), "offline"),
       new Option(t("providerGoogle"), "google"),
     );
@@ -909,6 +930,18 @@
     const params = new URLSearchParams(window.location.search);
     const requestedProvider = (params.get("provider") || params.get("mapProvider") || "").trim();
     return MAP_PROVIDERS.includes(requestedProvider) ? requestedProvider : DEFAULT_MAP_PROVIDER;
+  }
+
+  function noteBodyKeyForProvider() {
+    if (currentProvider === "google") {
+      return "noteBodyGoogle";
+    }
+
+    if (currentProvider === "offline") {
+      return "noteBodyOffline";
+    }
+
+    return "noteBodyOpenMap";
   }
 
   function normalizeLanguage(value) {
@@ -982,16 +1015,83 @@
   function initializeMapProvider() {
     closeOfflinePopup();
 
+    if (currentProvider === "openmap") {
+      initializeOpenMap();
+      return;
+    }
+
     if (currentProvider === "google") {
+      destroyOpenMap();
       initializeGoogleMap(getStoredGoogleMapsKey());
       return;
     }
 
+    destroyOpenMap();
     initializeOfflineMap();
+  }
+
+  function initializeOpenMap(messageKey = "") {
+    clearGoogleMarkers();
+    closeOfflinePopup();
+    offlinePopup = null;
+    hideApiKeyPanel();
+    destroyOpenMap();
+
+    if (!window.L) {
+      currentProvider = "offline";
+      localStorage.setItem(MAP_PROVIDER_STORAGE, currentProvider);
+      applyLanguage();
+      initializeOfflineMap("openMapUnavailable");
+      return;
+    }
+
+    elements.map.className = "openmap";
+    elements.map.replaceChildren();
+    map = L.map(elements.map, {
+      center: [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
+      zoom: DEFAULT_ZOOM,
+      minZoom: 2,
+      maxZoom: 18,
+      zoomControl: true,
+      worldCopyJump: true,
+      preferCanvas: true,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    openMapLayer = L.layerGroup().addTo(map);
+    map.on("zoomend moveend", scheduleOpenMapRender);
+    map.on("popupopen", bindOpenMapPopupActions);
+    renderMarkers();
+    fitVisibleMarkers();
+
+    if (messageKey) {
+      showMapToast(messageKey);
+    }
+  }
+
+  function destroyOpenMap() {
+    window.clearTimeout(openMapRenderTimer);
+    openMapRenderTimer = 0;
+
+    if (openMapLayer) {
+      openMapLayer.clearLayers();
+      openMapLayer = null;
+    }
+
+    if (map && window.L && map instanceof L.Map) {
+      map.off();
+      map.remove();
+      map = null;
+    }
   }
 
   function initializeOfflineMap(messageKey = "") {
     clearGoogleMarkers();
+    destroyOpenMap();
     map = null;
     infoWindow = null;
     hideApiKeyPanel();
@@ -1297,12 +1397,114 @@
   }
 
   function renderMarkers() {
+    if (currentProvider === "openmap") {
+      renderOpenMapMarkers();
+      return;
+    }
+
     if (currentProvider === "offline") {
       renderOfflineMarkers();
       return;
     }
 
     renderGoogleMarkers();
+  }
+
+  function scheduleOpenMapRender() {
+    window.clearTimeout(openMapRenderTimer);
+    openMapRenderTimer = window.setTimeout(renderOpenMapMarkers, 80);
+  }
+
+  function renderOpenMapMarkers() {
+    if (currentProvider !== "openmap" || !map || !openMapLayer || !window.L) {
+      return;
+    }
+
+    openMapLayer.clearLayers();
+    markersById.clear();
+
+    if (!visibleLandmarks.length) {
+      return;
+    }
+
+    if (!shouldRenderOpenMapIndividuals()) {
+      renderOpenMapCityMarkers();
+      return;
+    }
+
+    openMapVisibleLandmarks().forEach((landmark) => {
+      const marker = L.marker([landmark.plotLat, landmark.plotLng], {
+        title: landmark.name,
+        riseOnHover: true,
+        icon: createOpenMapLandmarkIcon(landmark),
+      });
+      marker.addTo(openMapLayer);
+      bindOpenMapMarkerAction(marker, () => openOpenMapPopup(marker, landmark));
+      markersById.set(landmark.id, { marker, landmark });
+    });
+  }
+
+  function shouldRenderOpenMapIndividuals() {
+    return (
+      visibleLandmarks.length <= OPENMAP_INDIVIDUAL_LIMIT ||
+      (map.getZoom() || DEFAULT_ZOOM) >= OPENMAP_INDIVIDUAL_ZOOM
+    );
+  }
+
+  function openMapVisibleLandmarks() {
+    if (visibleLandmarks.length <= OPENMAP_INDIVIDUAL_LIMIT || !map.getBounds) {
+      return visibleLandmarks;
+    }
+
+    const bounds = map.getBounds().pad(0.45);
+    return visibleLandmarks.filter((landmark) => bounds.contains([landmark.plotLat, landmark.plotLng]));
+  }
+
+  function renderOpenMapCityMarkers() {
+    groupVisibleLandmarksByCity().forEach((group) => {
+      const marker = L.marker([group.lat, group.lng], {
+        title: tf("clusterSummary", group.items.length, group.city),
+        riseOnHover: true,
+        icon: createOpenMapCityIcon(group),
+      });
+      marker.addTo(openMapLayer);
+      bindOpenMapMarkerAction(marker, () => {
+        const nextZoom = Math.max((map.getZoom() || DEFAULT_ZOOM) + 3, OPENMAP_INDIVIDUAL_ZOOM);
+        map.flyTo([group.lat, group.lng], Math.min(nextZoom, 14), { duration: 0.35 });
+      });
+    });
+  }
+
+  function bindOpenMapMarkerAction(marker, action) {
+    let lastRun = 0;
+    const run = () => {
+      const now = Date.now();
+      if (now - lastRun < 180) {
+        return;
+      }
+      lastRun = now;
+      action();
+    };
+
+    marker.on("click", run);
+
+    const element = marker.getElement();
+    if (!element) {
+      return;
+    }
+
+    element.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      run();
+    });
+    element.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      run();
+    });
   }
 
   function renderGoogleMarkers() {
@@ -1486,6 +1688,40 @@
     return marker;
   }
 
+  function createOpenMapLandmarkIcon(landmark) {
+    return L.divIcon({
+      className: "openmap-marker-wrap",
+      html: `
+        <span class="openmap-landmark-marker">
+          <img src="${escapeHtml(landmark.iconPath)}" alt="" aria-hidden="true" loading="lazy" />
+          <span>${escapeHtml(labelText(landmark.name))}</span>
+        </span>
+      `,
+      iconSize: [96, 52],
+      iconAnchor: [48, 28],
+      popupAnchor: [0, -30],
+    });
+  }
+
+  function createOpenMapCityIcon(group) {
+    return L.divIcon({
+      className: "openmap-marker-wrap",
+      html: `
+        <span class="openmap-city-marker">
+          <span class="city-miniature" aria-hidden="true">
+            <img src="assets/miniatures/types/${escapeHtml(categoryIconType(group.category))}.svg" alt="" loading="lazy" />
+            <strong>${group.items.length}</strong>
+          </span>
+          <span class="city-marker-label">${escapeHtml(group.city)}</span>
+          <span class="city-marker-hint">${escapeHtml(t("zoomPrompt"))}</span>
+        </span>
+      `,
+      iconSize: [112, 70],
+      iconAnchor: [56, 42],
+      popupAnchor: [0, -42],
+    });
+  }
+
   function createPopup(landmark) {
     const mapsQuery = encodeURIComponent(`${landmark.name}, ${landmark.city}, ${landmark.country}`);
     const mediaFigure = landmark.media?.thumbnail
@@ -1518,6 +1754,23 @@
         </a>
       </article>
     `;
+  }
+
+  function openOpenMapPopup(marker, landmark) {
+    marker.bindPopup(createPopup(landmark), {
+      className: "openmap-popup",
+      maxWidth: 320,
+      minWidth: 260,
+    });
+    marker.openPopup();
+  }
+
+  function bindOpenMapPopupActions(event) {
+    event.popup.getElement()?.querySelectorAll(".city-popup-item").forEach((button) => {
+      button.addEventListener("click", () => {
+        focusOpenMapLandmark(button.dataset.landmarkId);
+      });
+    });
   }
 
   function openOfflinePopup(marker, landmark) {
@@ -1687,6 +1940,11 @@
   }
 
   function focusLandmark(id) {
+    if (currentProvider === "openmap") {
+      focusOpenMapLandmark(id);
+      return;
+    }
+
     if (currentProvider === "offline") {
       const entry = markersById.get(id);
       if (entry) {
@@ -1713,7 +1971,55 @@
     openInfoWindow(entry.marker, entry.landmark);
   }
 
+  function focusOpenMapLandmark(id) {
+    if (!map || !window.L) {
+      return;
+    }
+
+    const landmark = visibleLandmarks.find((item) => item.id === id) || landmarks.find((item) => item.id === id);
+    if (!landmark) {
+      return;
+    }
+
+    const target = [landmark.plotLat, landmark.plotLng];
+    const targetZoom = Math.max(map.getZoom() || DEFAULT_ZOOM, 14);
+    map.flyTo(target, targetZoom, { duration: 0.35 });
+
+    window.setTimeout(() => {
+      renderOpenMapMarkers();
+      const entry = markersById.get(id);
+      if (entry) {
+        openOpenMapPopup(entry.marker, entry.landmark);
+      }
+    }, 380);
+  }
+
   function fitVisibleMarkers() {
+    if (currentProvider === "openmap") {
+      if (!map || !window.L) {
+        return;
+      }
+
+      if (!visibleLandmarks.length) {
+        map.setView([DEFAULT_CENTER.lat, DEFAULT_CENTER.lng], DEFAULT_ZOOM);
+        return;
+      }
+
+      if (visibleLandmarks.length === 1) {
+        const [landmark] = visibleLandmarks;
+        map.flyTo([landmark.plotLat, landmark.plotLng], 14, { duration: 0.3 });
+        return;
+      }
+
+      const bounds = L.latLngBounds(visibleLandmarks.map((item) => [item.plotLat, item.plotLng]));
+      const maxZoom = visibleLandmarks.length <= OPENMAP_INDIVIDUAL_LIMIT ? 12 : 5;
+      map.fitBounds(bounds, {
+        padding: [58, 58],
+        maxZoom,
+      });
+      return;
+    }
+
     if (currentProvider === "offline") {
       closeOfflinePopup();
       renderOfflineMarkers();
