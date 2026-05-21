@@ -75,7 +75,8 @@ h1 {
 }
 
 .icon-button,
-.secondary-button {
+.secondary-button,
+.primary-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -97,13 +98,21 @@ h1 {
   flex: 0 0 44px;
 }
 
-.secondary-button {
+.secondary-button,
+.primary-button {
   padding: 0 13px;
   font-weight: 700;
 }
 
+.primary-button {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
 .icon-button:hover,
-.secondary-button:hover {
+.secondary-button:hover,
+.primary-button:hover {
   border-color: #aebbd0;
   box-shadow: 0 8px 18px rgba(36, 107, 254, 0.11);
   transform: translateY(-1px);
@@ -239,16 +248,9 @@ h1 {
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: var(--marker-color);
-}
-
-.legend-dot img,
-.row-icon img,
-.popup-icon img {
-  display: block;
-  width: 82%;
-  height: 82%;
-  object-fit: contain;
+  background: rgba(112, 117, 122, 0.13);
+  color: var(--marker-color);
+  font-size: 0.72rem;
 }
 
 .landmark-list {
@@ -287,6 +289,8 @@ h1 {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 1px 3px rgba(32, 33, 36, 0.25);
+  color: #70757a;
+  font-size: 1rem;
 }
 
 .row-title {
@@ -307,6 +311,7 @@ h1 {
 
 .map-pane {
   grid-area: map;
+  position: relative;
   min-width: 0;
   min-height: 0;
 }
@@ -317,60 +322,67 @@ h1 {
   background: #d9e5ef;
 }
 
-.landmark-marker {
+.api-key-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
   display: grid;
-  grid-template-rows: 44px auto;
-  align-items: center;
-  justify-content: center;
-  justify-items: center;
-  width: 126px;
-  min-height: 76px;
-  pointer-events: auto;
-  transform: translateY(-4px);
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(245, 247, 251, 0.78), rgba(245, 247, 251, 0.92));
 }
 
-.landmark-marker img {
-  display: block;
-  width: 76px;
-  height: 48px;
-  object-fit: contain;
-  filter:
-    drop-shadow(0 1px 1px rgba(32, 33, 36, 0.75))
-    drop-shadow(0 0 2px rgba(255, 255, 255, 0.85));
+.api-key-panel.hidden {
+  display: none;
 }
 
-.landmark-marker-label {
-  display: -webkit-box;
-  max-width: 122px;
-  overflow: hidden;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 1.08;
-  text-align: center;
-  text-shadow:
-    -1px -1px 0 #202124,
-    1px -1px 0 #202124,
-    -1px 1px 0 #202124,
-    1px 1px 0 #202124,
-    0 2px 3px rgba(0, 0, 0, 0.55);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.leaflet-popup-content-wrapper {
+.api-key-card {
+  display: grid;
+  gap: 12px;
+  width: min(420px, 100%);
+  padding: 18px;
+  border: 1px solid var(--line);
   border-radius: 8px;
+  background: #fff;
   box-shadow: var(--shadow);
 }
 
-.leaflet-popup-content {
-  min-width: 230px;
-  margin: 14px;
+.api-key-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.api-key-card p.error {
+  color: #b3261e;
+  font-weight: 700;
+}
+
+.google-result-marker {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow:
+    0 1px 3px rgba(32, 33, 36, 0.35),
+    0 0 0 1px rgba(32, 33, 36, 0.08);
+  cursor: pointer;
+}
+
+.google-result-marker:hover,
+.google-result-marker:focus-visible {
+  outline: none;
+  transform: scale(1.18);
 }
 
 .popup-card {
   display: grid;
   gap: 10px;
+  min-width: 240px;
+  max-width: 300px;
 }
 
 .popup-head {
@@ -389,6 +401,8 @@ h1 {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 1px 3px rgba(32, 33, 36, 0.25);
+  color: #70757a;
+  font-size: 1rem;
 }
 
 .popup-media {
@@ -451,18 +465,13 @@ h1 {
   text-decoration: none;
 }
 
-.marker-cluster-small,
-.marker-cluster-medium,
-.marker-cluster-large {
-  background-color: rgba(36, 107, 254, 0.18);
+.gm-style .gm-style-iw-c {
+  border-radius: 8px;
+  box-shadow: var(--shadow);
 }
 
-.marker-cluster-small div,
-.marker-cluster-medium div,
-.marker-cluster-large div {
-  background-color: #246bfe;
-  color: #fff;
-  font-weight: 900;
+.gm-style .gm-style-iw-d {
+  overflow: auto !important;
 }
 
 .hidden {

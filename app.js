@@ -291,27 +291,16 @@
     "civic",
   ];
 
-  const map = L.map("map", {
-    worldCopyJump: true,
-    zoomControl: false,
-  }).setView([28, 18], 2);
-
-  L.control.zoom({ position: "bottomright" }).addTo(map);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
-
-  const clusterLayer = L.markerClusterGroup({
-    showCoverageOnHover: false,
-    spiderfyDistanceMultiplier: 1.4,
-    maxClusterRadius: 42,
-  });
-  map.addLayer(clusterLayer);
+  const GOOGLE_MAPS_KEY_STORAGE = "googleMapsApiKey";
+  const DEFAULT_CENTER = { lat: 28, lng: 18 };
+  const DEFAULT_ZOOM = 2;
 
   const elements = {
+    map: document.getElementById("map"),
+    apiKeyPanel: document.getElementById("apiKeyPanel"),
+    apiKeyForm: document.getElementById("apiKeyForm"),
+    apiKeyInput: document.getElementById("apiKeyInput"),
+    apiKeyStatus: document.getElementById("apiKeyStatus"),
     searchInput: document.getElementById("searchInput"),
     continentFilter: document.getElementById("continentFilter"),
     countryFilter: document.getElementById("countryFilter"),
@@ -329,6 +318,12 @@
   const landmarks = addCityOffsets(parseLandmarks(window.LANDMARK_SOURCE || ""));
   const markersById = new Map();
   let visibleLandmarks = landmarks;
+  let googleLoaderPromise = null;
+  let loadedGoogleMapsKey = "";
+  let map = null;
+  let infoWindow = null;
+  let mapsApi = null;
+  let markerApi = null;
 
   initialize();
 
@@ -351,9 +346,124 @@
     elements.toggleList.addEventListener("click", () => {
       elements.landmarkList.classList.toggle("collapsed");
     });
+    elements.apiKeyForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const key = elements.apiKeyInput.value.trim();
+      if (!key) {
+        showApiKeyPanel("请输入 Google Maps API key。", true);
+        return;
+      }
+      localStorage.setItem(GOOGLE_MAPS_KEY_STORAGE, key);
+      if (loadedGoogleMapsKey && loadedGoogleMapsKey !== key) {
+        window.location.reload();
+        return;
+      }
+      initializeGoogleMap(key);
+    });
 
     render();
-    fitVisibleMarkers();
+    initializeGoogleMap(getStoredGoogleMapsKey());
+  }
+
+  async function initializeGoogleMap(apiKey) {
+    if (!apiKey) {
+      showApiKeyPanel("输入 key 后加载 Google 官方地图。", false);
+      return;
+    }
+
+    showApiKeyPanel("正在加载 Google 官方地图...", false);
+
+    try {
+      await loadGoogleMapsApi(apiKey);
+      mapsApi = await google.maps.importLibrary("maps");
+      markerApi = await google.maps.importLibrary("marker");
+      map = new mapsApi.Map(elements.map, {
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        mapId: "DEMO_MAP_ID",
+        mapTypeId: "hybrid",
+        clickableIcons: true,
+        fullscreenControl: true,
+        gestureHandling: "greedy",
+        mapTypeControl: true,
+        streetViewControl: false,
+      });
+      infoWindow = new mapsApi.InfoWindow({
+        maxWidth: 320,
+      });
+      hideApiKeyPanel();
+      renderMarkers();
+      fitVisibleMarkers();
+    } catch (error) {
+      console.error(error);
+      showApiKeyPanel("Google Maps 加载失败，请检查 key、Maps JavaScript API 和来源限制。", true);
+    }
+  }
+
+  function loadGoogleMapsApi(apiKey) {
+    if (window.google?.maps?.importLibrary) {
+      return Promise.resolve();
+    }
+
+    if (googleLoaderPromise) {
+      return googleLoaderPromise;
+    }
+
+    googleLoaderPromise = new Promise((resolve, reject) => {
+      const callbackName = "__googleMapsLandmarkReady";
+      const params = new URLSearchParams({
+        key: apiKey,
+        loading: "async",
+        callback: callbackName,
+        v: "weekly",
+        language: "zh-CN",
+        region: "US",
+        libraries: "marker",
+      });
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
+      script.onerror = () => reject(new Error("Google Maps JavaScript API could not load."));
+      window[callbackName] = () => {
+        delete window[callbackName];
+        loadedGoogleMapsKey = apiKey;
+        resolve();
+      };
+      window.gm_authFailure = () => {
+        showApiKeyPanel("Google Maps key 无效，或 Maps JavaScript API 没有启用。", true);
+      };
+      document.head.appendChild(script);
+    });
+
+    return googleLoaderPromise;
+  }
+
+  function getStoredGoogleMapsKey() {
+    const params = new URLSearchParams(window.location.search);
+    const keyFromUrl = (params.get("googleMapsKey") || params.get("key") || "").trim();
+
+    if (keyFromUrl) {
+      localStorage.setItem(GOOGLE_MAPS_KEY_STORAGE, keyFromUrl);
+      params.delete("googleMapsKey");
+      params.delete("key");
+      const query = params.toString();
+      const cleanUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+      window.history.replaceState({}, "", cleanUrl);
+      return keyFromUrl;
+    }
+
+    return (localStorage.getItem(GOOGLE_MAPS_KEY_STORAGE) || "").trim();
+  }
+
+  function showApiKeyPanel(message, isError) {
+    elements.apiKeyPanel.classList.remove("hidden");
+    elements.apiKeyStatus.textContent = message;
+    elements.apiKeyStatus.classList.toggle("error", Boolean(isError));
+  }
+
+  function hideApiKeyPanel() {
+    elements.apiKeyPanel.classList.add("hidden");
+    elements.apiKeyStatus.classList.remove("error");
   }
 
   function parseLandmarks(source) {
@@ -397,7 +507,6 @@
 
         const coordinates = cityCoordinates[currentCity];
         const category = detectCategory(line);
-        const placeIcon = detectPlaceIcon(line, category);
         const id = slugify(`${currentContinent}-${currentCountry}-${currentCity}-${line}-${records.length}`);
         const record = {
           id,
@@ -406,8 +515,6 @@
           country: currentCountry,
           city: currentCity,
           category,
-          placeIcon,
-          iconPath: `assets/miniatures/landmarks/${id}.svg`,
           media: landmarkMedia[id],
           lat: coordinates.lat,
           lng: coordinates.lng,
@@ -427,71 +534,6 @@
         CATEGORY_DEFINITIONS[key].keywords.some((keyword) => text.includes(keyword.toLowerCase())),
       ) || "landmark"
     );
-  }
-
-  function detectPlaceIcon(name, categoryKey) {
-    const text = ` ${name.toLowerCase()} `;
-    if (matches(text, ["aquarium", "biodome"])) return "aquarium";
-    if (matches(text, ["library", "biblioteca", "bibliothek", "bibliotek", "bibliotheek"])) return "library";
-    if (matches(text, ["stadium", "estadio", "camp nou", "maracanã", "maracana"])) return "stadium";
-    if (matches(text, ["park", "gardens", "garden", "jardim", "botanical", "bo-kaap", "cape point"])) return "park";
-    if (matches(text, ["school", "university", "ubc", "karnataka", "college"])) return "school";
-    if (matches(text, ["mosque", "camii", "masjid", "jamek", "dargah", "jaffali", "rahmah"])) {
-      return "worshipIslam";
-    }
-    if (
-      matches(text, [
-        "temple",
-        "mandir",
-        "shri ",
-        "sri ",
-        "pura ",
-        "wat ",
-        "jingu",
-        "jinja",
-        "buddha",
-        "pagoda",
-        "iskcon",
-        "shrine",
-        "taisha",
-        "sensō",
-        "senso",
-      ])
-    ) {
-      return "worshipHindu";
-    }
-    if (
-      matches(text, [
-        "basilica",
-        "basilique",
-        "cathedral",
-        "catedral",
-        "cathédrale",
-        "church",
-        "kirche",
-        "crkva",
-        "abbey",
-        "oratory",
-        "chapel",
-        "duomo",
-        "domkirke",
-        "eglise",
-        "église",
-        "minster",
-        "saint ",
-        "sankt ",
-        "st. ",
-      ])
-    ) {
-      return "worshipChristian";
-    }
-
-    const category = CATEGORY_DEFINITIONS[categoryKey];
-    return category?.icon || "generic";
-  }
-
-  function matches(text, keywords) {
-    return keywords.some((keyword) => text.includes(keyword));
   }
 
   function createDescription(landmark) {
@@ -566,16 +608,24 @@
   }
 
   function renderMarkers() {
-    clusterLayer.clearLayers();
+    markersById.forEach(({ marker }) => {
+      marker.map = null;
+    });
     markersById.clear();
 
+    if (!map || !markerApi?.AdvancedMarkerElement) {
+      return;
+    }
+
     visibleLandmarks.forEach((landmark) => {
-      const marker = L.marker([landmark.plotLat, landmark.plotLng], {
-        icon: createMarkerIcon(landmark),
+      const marker = new markerApi.AdvancedMarkerElement({
+        map,
+        position: { lat: landmark.plotLat, lng: landmark.plotLng },
         title: landmark.name,
-      }).bindPopup(createPopup(landmark));
-      markersById.set(landmark.id, marker);
-      clusterLayer.addLayer(marker);
+        content: createMapMarkerContent(landmark),
+      });
+      marker.addListener("click", () => openInfoWindow(marker, landmark));
+      markersById.set(landmark.id, { marker, landmark });
     });
   }
 
@@ -588,7 +638,7 @@
       row.type = "button";
       row.className = "landmark-row";
       row.innerHTML = `
-        ${miniatureIconMarkup(landmark, "row-icon")}
+        ${categoryIconMarkup(landmark.category, "row-icon")}
         <span>
           <span class="row-title">${escapeHtml(landmark.name)}</span>
           <span class="row-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)} · ${escapeHtml(category.label)}</span>
@@ -614,7 +664,7 @@
       const chip = document.createElement("span");
       chip.className = "legend-chip";
       chip.innerHTML = `
-        ${typeIconMarkup(category.icon, "legend-dot")}
+        ${categoryIconMarkup(key, "legend-dot")}
         ${escapeHtml(category.label)}
       `;
       fragment.appendChild(chip);
@@ -630,19 +680,20 @@
     );
   }
 
-  function createMarkerIcon(landmark) {
-    return L.divIcon({
-      className: "",
-      html: `
-        <span class="landmark-marker">
-          <img src="${escapeHtml(landmark.iconPath)}" alt="" aria-hidden="true" loading="lazy" />
-          <span class="landmark-marker-label">${escapeHtml(labelText(landmark.name))}</span>
-        </span>
-      `,
-      iconSize: [126, 82],
-      iconAnchor: [63, 42],
-      popupAnchor: [0, -42],
+  function createMapMarkerContent(landmark) {
+    const marker = document.createElement("button");
+    marker.type = "button";
+    marker.className = "google-result-marker";
+    marker.title = landmark.name;
+    marker.innerHTML = `<span class="sr-only">${escapeHtml(landmark.name)}</span>`;
+    marker.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const entry = markersById.get(landmark.id);
+      if (entry) {
+        openInfoWindow(entry.marker, landmark);
+      }
     });
+    return marker;
   }
 
   function createPopup(landmark) {
@@ -663,7 +714,7 @@
     return `
       <article class="popup-card">
         <div class="popup-head">
-          ${miniatureIconMarkup(landmark, "popup-icon", landmark.name)}
+          ${categoryIconMarkup(landmark.category, "popup-icon")}
           <div>
             <h2 class="popup-title">${escapeHtml(landmark.name)}</h2>
             <p class="popup-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)}</p>
@@ -680,45 +731,82 @@
     `;
   }
 
-  function miniatureIconMarkup(landmark, className, altText = "") {
-    const alt = altText ? escapeHtml(`${altText} miniature`) : "";
-    const hidden = altText ? "" : ' aria-hidden="true"';
-    return `
-      <span class="${className}"${hidden}>
-        <img src="${escapeHtml(landmark.iconPath)}" alt="${alt}" loading="lazy" />
-      </span>
-    `;
+  function openInfoWindow(marker, landmark) {
+    if (!infoWindow) {
+      return;
+    }
+    infoWindow.setContent(createPopup(landmark));
+    infoWindow.open({
+      map,
+      anchor: marker,
+    });
   }
 
-  function typeIconMarkup(type, className) {
+  function categoryIconMarkup(categoryKey, className) {
+    const iconClasses = {
+      museum: "fa-landmark",
+      faith: "fa-place-of-worship",
+      palace: "fa-chess-rook",
+      tower: "fa-building",
+      monument: "fa-monument",
+      civic: "fa-building-columns",
+      culture: "fa-masks-theater",
+      science: "fa-flask",
+      sports: "fa-futbol",
+      landmark: "fa-location-dot",
+    };
+    const category = CATEGORY_DEFINITIONS[categoryKey] || CATEGORY_DEFINITIONS.landmark;
+    const iconClass = iconClasses[categoryKey] || iconClasses.landmark;
     return `
-      <span class="${className}" aria-hidden="true">
-        <img src="assets/miniatures/types/${escapeHtml(type)}.svg" alt="" loading="lazy" />
+      <span class="${className}" style="--marker-color: ${escapeHtml(category.color)}" aria-hidden="true">
+        <i class="fa-solid ${iconClass}"></i>
       </span>
     `;
-  }
-
-  function labelText(name) {
-    return name.replace(/\s+[–|].*$/, "").replace(/\([^)]*\)/g, "").trim();
   }
 
   function focusLandmark(id) {
-    const marker = markersById.get(id);
-    if (!marker) {
+    if (!map) {
+      showApiKeyPanel("先加载 Google Maps 官方地图。", false);
       return;
     }
-    const latLng = marker.getLatLng();
-    map.setView(latLng, Math.max(map.getZoom(), 10), { animate: true });
-    clusterLayer.zoomToShowLayer(marker, () => marker.openPopup());
+    const entry = markersById.get(id);
+    if (!entry) {
+      return;
+    }
+    map.panTo(entry.marker.position);
+    map.setZoom(Math.max(map.getZoom() || DEFAULT_ZOOM, 14));
+    openInfoWindow(entry.marker, entry.landmark);
   }
 
   function fitVisibleMarkers() {
-    if (!visibleLandmarks.length) {
-      map.setView([28, 18], 2);
+    if (!map || !mapsApi?.LatLngBounds) {
+      showApiKeyPanel("先加载 Google Maps 官方地图。", false);
       return;
     }
-    const bounds = L.latLngBounds(visibleLandmarks.map((item) => [item.plotLat, item.plotLng]));
-    map.fitBounds(bounds.pad(0.18), { maxZoom: 12, animate: true });
+
+    if (!visibleLandmarks.length) {
+      map.setCenter(DEFAULT_CENTER);
+      map.setZoom(DEFAULT_ZOOM);
+      return;
+    }
+
+    if (visibleLandmarks.length === 1) {
+      const [landmark] = visibleLandmarks;
+      map.panTo({ lat: landmark.plotLat, lng: landmark.plotLng });
+      map.setZoom(14);
+      return;
+    }
+
+    const bounds = new mapsApi.LatLngBounds();
+    visibleLandmarks.forEach((item) => {
+      bounds.extend({ lat: item.plotLat, lng: item.plotLng });
+    });
+    map.fitBounds(bounds, 64);
+    google.maps.event.addListenerOnce(map, "idle", () => {
+      if ((map.getZoom() || DEFAULT_ZOOM) > 12) {
+        map.setZoom(12);
+      }
+    });
   }
 
   function resetFilters() {
