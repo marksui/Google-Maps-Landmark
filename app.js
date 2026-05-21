@@ -1,31 +1,9 @@
 (function () {
-  const GOOGLE_PLACE_ICON_BASE = "https://maps.gstatic.com/mapfiles/place_api/icons/v2/";
-  const PLACE_ICONS = {
-    museum: { label: "Museum", file: "museum_pinlet.svg", color: "#13B5C7" },
-    historic: { label: "Historic", file: "historic_pinlet.svg", color: "#13B5C7" },
-    monument: { label: "Monument", file: "monument_pinlet.svg", color: "#7B9EB0" },
-    civic: { label: "Civic building", file: "civic-bldg_pinlet.svg", color: "#7B9EB0" },
-    library: { label: "Library", file: "library_pinlet.svg", color: "#7B9EB0" },
-    worshipChristian: { label: "Worship", file: "worship_christian_pinlet.svg", color: "#7B9EB0" },
-    worshipHindu: { label: "Worship", file: "worship_hindu_pinlet.svg", color: "#7B9EB0" },
-    worshipIslam: { label: "Worship", file: "worship_islam_pinlet.svg", color: "#7B9EB0" },
-    theater: { label: "Theater", file: "theater_pinlet.svg", color: "#13B5C7" },
-    stadium: { label: "Stadium", file: "stadium_pinlet.svg", color: "#4DB546" },
-    aquarium: { label: "Aquarium", file: "dolphin_pinlet.svg", color: "#13B5C7" },
-    park: { label: "Park", file: "tree_pinlet.svg", color: "#4DB546" },
-    school: { label: "School", file: "school_pinlet.svg", color: "#7B9EB0" },
-    generic: { label: "Place", file: "generic_pinlet.svg", color: "#7B9EB0" },
-  };
-
-  Object.values(PLACE_ICONS).forEach((icon) => {
-    icon.url = `${GOOGLE_PLACE_ICON_BASE}${icon.file}`;
-  });
-
   const CATEGORY_DEFINITIONS = {
     museum: {
       label: "博物馆/美术馆",
       icon: "museum",
-      color: PLACE_ICONS.museum.color,
+      color: "#70757a",
       keywords: [
         "museum",
         "museo",
@@ -50,8 +28,8 @@
     },
     faith: {
       label: "宗教建筑",
-      icon: "worshipChristian",
-      color: PLACE_ICONS.worshipChristian.color,
+      icon: "faith",
+      color: "#70757a",
       keywords: [
         "basilica",
         "basilique",
@@ -86,8 +64,8 @@
     },
     palace: {
       label: "宫殿/城堡",
-      icon: "historic",
-      color: PLACE_ICONS.historic.color,
+      icon: "palace",
+      color: "#70757a",
       keywords: [
         "palace",
         "palais",
@@ -112,8 +90,8 @@
     },
     tower: {
       label: "高塔/天际线",
-      icon: "historic",
-      color: PLACE_ICONS.historic.color,
+      icon: "tower",
+      color: "#70757a",
       keywords: [
         "tower",
         "torre",
@@ -134,7 +112,7 @@
     monument: {
       label: "纪念碑/广场",
       icon: "monument",
-      color: PLACE_ICONS.monument.color,
+      color: "#70757a",
       keywords: [
         "monument",
         "memorial",
@@ -161,7 +139,7 @@
     civic: {
       label: "市政/公共建筑",
       icon: "civic",
-      color: PLACE_ICONS.civic.color,
+      color: "#70757a",
       keywords: [
         "city hall",
         "rathaus",
@@ -184,7 +162,7 @@
     culture: {
       label: "剧院/文化",
       icon: "theater",
-      color: PLACE_ICONS.theater.color,
+      color: "#70757a",
       keywords: [
         "theatre",
         "theater",
@@ -204,7 +182,7 @@
     science: {
       label: "科学/教育",
       icon: "museum",
-      color: PLACE_ICONS.museum.color,
+      color: "#70757a",
       keywords: [
         "science",
         "technology",
@@ -221,13 +199,13 @@
     sports: {
       label: "体育场馆",
       icon: "stadium",
-      color: PLACE_ICONS.stadium.color,
+      color: "#70757a",
       keywords: ["stadium", "estadio", "camp nou", "maracanã", "football"],
     },
     landmark: {
       label: "其他地标",
       icon: "generic",
-      color: PLACE_ICONS.generic.color,
+      color: "#70757a",
       keywords: [],
     },
   };
@@ -429,6 +407,7 @@
           city: currentCity,
           category,
           placeIcon,
+          iconPath: `assets/miniatures/landmarks/${id}.svg`,
           media: landmarkMedia[id],
           lat: coordinates.lat,
           lng: coordinates.lng,
@@ -609,7 +588,7 @@
       row.type = "button";
       row.className = "landmark-row";
       row.innerHTML = `
-        ${placeIconMarkup(landmark, "row-icon")}
+        ${miniatureIconMarkup(landmark, "row-icon")}
         <span>
           <span class="row-title">${escapeHtml(landmark.name)}</span>
           <span class="row-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)} · ${escapeHtml(category.label)}</span>
@@ -635,7 +614,7 @@
       const chip = document.createElement("span");
       chip.className = "legend-chip";
       chip.innerHTML = `
-        ${placeIconMarkup(category.icon, "legend-dot")}
+        ${typeIconMarkup(category.icon, "legend-dot")}
         ${escapeHtml(category.label)}
       `;
       fragment.appendChild(chip);
@@ -651,14 +630,18 @@
     );
   }
 
-  function createMarkerIcon(categoryKey) {
-    const landmark = typeof categoryKey === "string" ? { placeIcon: categoryKey } : categoryKey;
+  function createMarkerIcon(landmark) {
     return L.divIcon({
       className: "",
-      html: placeIconMarkup(landmark, "landmark-marker"),
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
-      popupAnchor: [0, -14],
+      html: `
+        <span class="landmark-marker">
+          <img src="${escapeHtml(landmark.iconPath)}" alt="" aria-hidden="true" loading="lazy" />
+          <span class="landmark-marker-label">${escapeHtml(labelText(landmark.name))}</span>
+        </span>
+      `,
+      iconSize: [126, 82],
+      iconAnchor: [63, 42],
+      popupAnchor: [0, -42],
     });
   }
 
@@ -680,7 +663,7 @@
     return `
       <article class="popup-card">
         <div class="popup-head">
-          ${placeIconMarkup(landmark, "popup-icon", landmark.name)}
+          ${miniatureIconMarkup(landmark, "popup-icon", landmark.name)}
           <div>
             <h2 class="popup-title">${escapeHtml(landmark.name)}</h2>
             <p class="popup-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)}</p>
@@ -697,19 +680,26 @@
     `;
   }
 
-  function placeIconMarkup(landmarkOrIconKey, className, altText = "") {
-    const landmark =
-      typeof landmarkOrIconKey === "string" ? { placeIcon: landmarkOrIconKey } : landmarkOrIconKey || {};
-    const icon = PLACE_ICONS[landmark.placeIcon] || PLACE_ICONS.generic;
-    const imageUrl = landmark.media?.thumbnail || icon.url;
-    const alt = altText ? escapeHtml(`${altText} icon`) : "";
+  function miniatureIconMarkup(landmark, className, altText = "") {
+    const alt = altText ? escapeHtml(`${altText} miniature`) : "";
     const hidden = altText ? "" : ' aria-hidden="true"';
-    const photoClass = landmark.media?.thumbnail ? " landmark-photo-icon" : "";
     return `
-      <span class="${className}${photoClass}" style="--marker-color:${icon.color}"${hidden}>
-        <img src="${escapeHtml(imageUrl)}" alt="${alt}" loading="lazy" />
+      <span class="${className}"${hidden}>
+        <img src="${escapeHtml(landmark.iconPath)}" alt="${alt}" loading="lazy" />
       </span>
     `;
+  }
+
+  function typeIconMarkup(type, className) {
+    return `
+      <span class="${className}" aria-hidden="true">
+        <img src="assets/miniatures/types/${escapeHtml(type)}.svg" alt="" loading="lazy" />
+      </span>
+    `;
+  }
+
+  function labelText(name) {
+    return name.replace(/\s+[–|].*$/, "").replace(/\([^)]*\)/g, "").trim();
   }
 
   function focusLandmark(id) {

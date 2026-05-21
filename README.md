@@ -4,14 +4,14 @@ A static landmark map for the Google Maps Miniatures list.
 
 ## Open
 
-Open `index.html` in a browser. The page uses Leaflet, OpenStreetMap tiles, MarkerCluster, Font Awesome, Google Places icon SVGs, and Wikimedia-hosted landmark thumbnails from CDNs, so an internet connection is needed.
+Open `index.html` in a browser. The page uses Leaflet, OpenStreetMap tiles, MarkerCluster, Font Awesome, and Wikimedia-hosted landmark images. Map miniatures are stored locally in `assets/miniatures/`.
 
 ## What It Includes
 
 - 766 landmarks from the provided list
 - 107 city anchor points across North America, Europe, Asia, South America, Africa, and Oceania
-- Landmark-specific thumbnails for 764 of 766 places, crawled from Wikipedia, Wikidata, and Wikimedia Commons
-- Google Places POI icon SVG fallbacks from `maps.gstatic.com/mapfiles/place_api/icons/v2/`
+- Local Google-Maps-style gray landmark miniatures for every map marker
+- Landmark images for 764 of 766 popup cards, crawled from Wikipedia, Wikidata, and Wikimedia Commons
 - Search plus continent, country/region, and icon-type filters
 - Marker clustering and a Google Maps search link in each popup
 - A short description in every landmark popup, using crawled summaries when available
@@ -26,4 +26,10 @@ Run this to refresh landmark thumbnails and summaries:
 node scripts/fetch-landmark-media.mjs
 ```
 
-Google does not publish a single offline download pack for the proprietary Maps landmark miniatures. This project uses public Wikimedia/Wikipedia media for each landmark and keeps Google Places POI SVGs as fallback markers.
+Run this to regenerate local map miniatures:
+
+```sh
+node scripts/generate-miniatures.mjs
+```
+
+Google does not publish a single offline download pack for the proprietary Maps landmark miniatures. This project uses local SVG miniatures styled to match the gray/white map-overlay look, and uses public Wikimedia/Wikipedia media inside popup cards.
