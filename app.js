@@ -82,6 +82,8 @@
       listLabel: "地标列表",
       noteLabel: "地图说明",
       fitVisible: "显示当前结果",
+      hidePanel: "收起面板",
+      showPanel: "显示面板",
       statLandmarks: "地标",
       statCities: "城市",
       statCountries: "国家/地区",
@@ -165,6 +167,8 @@
       listLabel: "Landmarks",
       noteLabel: "Map note",
       fitVisible: "Fit current results",
+      hidePanel: "Collapse panel",
+      showPanel: "Show panel",
       statLandmarks: "Landmarks",
       statCities: "Cities",
       statCountries: "Countries/regions",
@@ -248,6 +252,8 @@
       listLabel: "ランドマーク一覧",
       noteLabel: "地図の説明",
       fitVisible: "現在の結果を表示",
+      hidePanel: "パネルを閉じる",
+      showPanel: "パネルを表示",
       statLandmarks: "ランドマーク",
       statCities: "都市",
       statCountries: "国/地域",
@@ -331,6 +337,8 @@
       listLabel: "Lugares emblemáticos",
       noteLabel: "Nota del mapa",
       fitVisible: "Mostrar resultados actuales",
+      hidePanel: "Contraer panel",
+      showPanel: "Mostrar panel",
       statLandmarks: "Lugares",
       statCities: "Ciudades",
       statCountries: "Países/regiones",
@@ -702,6 +710,7 @@
   const DEFAULT_ZOOM = 2;
 
   const elements = {
+    appShell: document.querySelector(".app-shell"),
     sidebar: document.getElementById("sidebar"),
     mapPane: document.getElementById("mapPane"),
     map: document.getElementById("map"),
@@ -711,6 +720,8 @@
     mapHelpPopover: document.getElementById("mapHelpPopover"),
     mapHelpTitle: document.getElementById("mapHelpTitle"),
     mapHelpBody: document.getElementById("mapHelpBody"),
+    toggleSidebarText: document.getElementById("toggleSidebarText"),
+    restoreSidebarText: document.getElementById("restoreSidebarText"),
     fitVisibleText: document.getElementById("fitVisibleText"),
     statsSection: document.getElementById("statsSection"),
     controlsSection: document.getElementById("controlsSection"),
@@ -741,6 +752,8 @@
     countryFilter: document.getElementById("countryFilter"),
     categoryFilter: document.getElementById("categoryFilter"),
     resetFilters: document.getElementById("resetFilters"),
+    toggleSidebar: document.getElementById("toggleSidebar"),
+    restoreSidebar: document.getElementById("restoreSidebar"),
     fitVisible: document.getElementById("fitVisible"),
     toggleList: document.getElementById("toggleList"),
     legend: document.getElementById("legend"),
@@ -766,6 +779,7 @@
   let openMapLayer = null;
   let openMapRenderTimer = 0;
   let openMapPopupOpen = false;
+  let sidebarCollapsed = false;
 
   initialize();
 
@@ -782,6 +796,8 @@
     elements.categoryFilter.addEventListener("change", render);
     elements.resetFilters.addEventListener("click", resetFilters);
     elements.fitVisible.addEventListener("click", fitVisibleMarkers);
+    elements.toggleSidebar.addEventListener("click", () => setSidebarCollapsed(true));
+    elements.restoreSidebar.addEventListener("click", () => setSidebarCollapsed(false));
     elements.mapHelp.addEventListener("click", toggleMapHelp);
     document.addEventListener("click", closeMapHelpFromOutside);
     document.addEventListener("keydown", closeMapHelpOnEscape);
@@ -846,12 +862,18 @@
     elements.landmarkList.setAttribute("aria-label", t("listLabel"));
     elements.mapNote.setAttribute("aria-label", t("noteLabel"));
     elements.fitVisible.title = t("fitVisible");
+    elements.toggleSidebar.title = t("hidePanel");
+    elements.toggleSidebar.setAttribute("aria-label", t("hidePanel"));
+    elements.restoreSidebar.title = t("showPanel");
+    elements.restoreSidebar.setAttribute("aria-label", t("showPanel"));
     elements.mapHelp.title = t("noteTitle");
     elements.mapHelp.setAttribute("aria-label", t("noteTitle"));
     elements.appTitle.textContent = t("appTitle");
     elements.mapHelpText.textContent = t("noteTitle");
     elements.mapHelpTitle.textContent = t("noteTitle");
     elements.mapHelpBody.textContent = t(noteBodyKeyForProvider());
+    elements.toggleSidebarText.textContent = t("hidePanel");
+    elements.restoreSidebarText.textContent = t("showPanel");
     elements.fitVisibleText.textContent = t("fitVisible");
     elements.visibleCountLabel.textContent = t("statLandmarks");
     elements.cityCountLabel.textContent = t("statCities");
@@ -966,6 +988,45 @@
   function closeMapHelp() {
     elements.mapHelpPopover.classList.remove("open");
     elements.mapHelp.setAttribute("aria-expanded", "false");
+  }
+
+  function setSidebarCollapsed(collapsed) {
+    if (sidebarCollapsed === collapsed) {
+      return;
+    }
+
+    sidebarCollapsed = collapsed;
+    elements.appShell.classList.toggle("sidebar-collapsed", sidebarCollapsed);
+    elements.toggleSidebar.setAttribute("aria-expanded", String(!sidebarCollapsed));
+    elements.restoreSidebar.setAttribute("aria-expanded", String(!sidebarCollapsed));
+
+    if (sidebarCollapsed) {
+      closeMapHelp();
+    }
+
+    refreshMapSizeSoon();
+  }
+
+  function refreshMapSizeSoon() {
+    window.requestAnimationFrame(() => {
+      refreshMapSize();
+      window.setTimeout(refreshMapSize, 260);
+    });
+  }
+
+  function refreshMapSize() {
+    if (!map) {
+      return;
+    }
+
+    if (typeof map.invalidateSize === "function") {
+      map.invalidateSize({ animate: true });
+      return;
+    }
+
+    if (window.google?.maps?.event?.trigger) {
+      window.google.maps.event.trigger(map, "resize");
+    }
   }
 
   function normalizeLanguage(value) {
