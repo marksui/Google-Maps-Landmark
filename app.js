@@ -4,6 +4,15 @@
   const DEFAULT_MAP_PROVIDER = "openmap";
   const MAP_PROVIDER_STORAGE = "landmarkMapProvider";
   const MAP_PROVIDERS = ["openmap", "google"];
+  const DEFAULT_THEME = "harbor";
+  const THEME_STORAGE = "landmarkMapTheme";
+  const THEMES = [
+    { key: "graphite", labelKey: "themeGraphite", swatchStart: "#d8dde0", swatchEnd: "#3c4348" },
+    { key: "harbor", labelKey: "themeHarbor", swatchStart: "#64c7ff", swatchEnd: "#0d4258" },
+    { key: "forest", labelKey: "themeForest", swatchStart: "#82d39a", swatchEnd: "#173f2d" },
+    { key: "plum", labelKey: "themePlum", swatchStart: "#d7a7ff", swatchEnd: "#4d255f" },
+    { key: "ember", labelKey: "themeEmber", swatchStart: "#f0b36a", swatchEnd: "#6a351d" },
+  ];
   const OPENMAP_INDIVIDUAL_LIMIT = 180;
   const OPENMAP_INDIVIDUAL_ZOOM = 8;
   const SUPPORTED_LANGUAGES = {
@@ -89,6 +98,12 @@
       statCountries: "国家/地区",
       language: "语言",
       mapProvider: "地图来源",
+      theme: "主题",
+      themeGraphite: "石墨",
+      themeHarbor: "海港",
+      themeForest: "森林",
+      themePlum: "暮紫",
+      themeEmber: "铜棕",
       providerOpenMap: "OpenStreetMap",
       providerGoogle: "Google 官方",
       search: "搜索",
@@ -98,6 +113,7 @@
       category: "图标类型",
       reset: "重置",
       list: "列表",
+      hideList: "隐藏列表",
       allContinents: "全部洲",
       allCountries: "全部国家/地区",
       allCategories: "全部图标类型",
@@ -174,6 +190,12 @@
       statCountries: "Countries/regions",
       language: "Language",
       mapProvider: "Map source",
+      theme: "Theme",
+      themeGraphite: "Graphite",
+      themeHarbor: "Harbor",
+      themeForest: "Forest",
+      themePlum: "Plum",
+      themeEmber: "Ember",
       providerOpenMap: "OpenStreetMap",
       providerGoogle: "Google official",
       search: "Search",
@@ -183,6 +205,7 @@
       category: "Icon type",
       reset: "Reset",
       list: "List",
+      hideList: "Hide list",
       allContinents: "All continents",
       allCountries: "All countries/regions",
       allCategories: "All icon types",
@@ -259,6 +282,12 @@
       statCountries: "国/地域",
       language: "言語",
       mapProvider: "地図ソース",
+      theme: "テーマ",
+      themeGraphite: "グラファイト",
+      themeHarbor: "ハーバー",
+      themeForest: "フォレスト",
+      themePlum: "プラム",
+      themeEmber: "アンバー",
       providerOpenMap: "OpenStreetMap",
       providerGoogle: "Google 公式",
       search: "検索",
@@ -268,6 +297,7 @@
       category: "アイコンの種類",
       reset: "リセット",
       list: "一覧",
+      hideList: "一覧を隠す",
       allContinents: "すべての大陸",
       allCountries: "すべての国/地域",
       allCategories: "すべての種類",
@@ -344,6 +374,12 @@
       statCountries: "Países/regiones",
       language: "Idioma",
       mapProvider: "Fuente del mapa",
+      theme: "Tema",
+      themeGraphite: "Grafito",
+      themeHarbor: "Puerto",
+      themeForest: "Bosque",
+      themePlum: "Ciruela",
+      themeEmber: "Cobre",
       providerOpenMap: "OpenStreetMap",
       providerGoogle: "Google oficial",
       search: "Buscar",
@@ -353,6 +389,7 @@
       category: "Tipo de icono",
       reset: "Restablecer",
       list: "Lista",
+      hideList: "Ocultar lista",
       allContinents: "Todos los continentes",
       allCountries: "Todos los países/regiones",
       allCategories: "Todos los tipos",
@@ -732,6 +769,8 @@
     languageSelect: document.getElementById("languageSelect"),
     mapProviderLabel: document.getElementById("mapProviderLabel"),
     mapProviderSelect: document.getElementById("mapProviderSelect"),
+    themeLabel: document.getElementById("themeLabel"),
+    themePicker: document.getElementById("themePicker"),
     searchLabel: document.getElementById("searchLabel"),
     continentLabel: document.getElementById("continentLabel"),
     countryLabel: document.getElementById("countryLabel"),
@@ -765,6 +804,7 @@
 
   let currentLanguage = getInitialLanguage();
   let currentProvider = getInitialProvider();
+  let currentTheme = getInitialTheme();
   let apiKeyStatus = { key: "apiLocalOnly", isError: false };
   const regionNamesCache = new Map();
   const landmarks = addCityOffsets(parseLandmarks(window.LANDMARK_SOURCE || ""));
@@ -780,16 +820,21 @@
   let openMapRenderTimer = 0;
   let openMapPopupOpen = false;
   let sidebarCollapsed = false;
+  let listCollapsed = true;
 
   initialize();
 
   function initialize() {
+    applyTheme(currentTheme);
     buildLanguageSelect();
     buildProviderSelect();
     applyLanguage();
+    setListCollapsed(listCollapsed);
 
     elements.languageSelect.addEventListener("change", handleLanguageChange);
     elements.mapProviderSelect.addEventListener("change", handleProviderChange);
+    elements.themePicker.addEventListener("click", handleThemePickerClick);
+    elements.themePicker.addEventListener("keydown", handleThemePickerKeydown);
     elements.searchInput.addEventListener("input", render);
     elements.continentFilter.addEventListener("change", render);
     elements.countryFilter.addEventListener("change", render);
@@ -802,7 +847,7 @@
     document.addEventListener("click", closeMapHelpFromOutside);
     document.addEventListener("keydown", closeMapHelpOnEscape);
     elements.toggleList.addEventListener("click", () => {
-      elements.landmarkList.classList.toggle("collapsed");
+      setListCollapsed(!listCollapsed, true);
     });
     elements.apiKeyForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -845,6 +890,34 @@
     initializeMapProvider();
   }
 
+  function handleThemePickerClick(event) {
+    const button = event.target.closest("[data-theme]");
+    if (!button || !elements.themePicker.contains(button)) {
+      return;
+    }
+
+    selectTheme(button.dataset.theme);
+  }
+
+  function handleThemePickerKeydown(event) {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+      return;
+    }
+
+    event.preventDefault();
+    const currentIndex = THEMES.findIndex((theme) => theme.key === currentTheme);
+    const direction = event.key === "ArrowRight" ? 1 : -1;
+    const nextTheme = THEMES[(currentIndex + direction + THEMES.length) % THEMES.length];
+    selectTheme(nextTheme.key);
+    elements.themePicker.querySelector(`[data-theme="${nextTheme.key}"]`)?.focus();
+  }
+
+  function selectTheme(theme) {
+    currentTheme = normalizeTheme(theme);
+    localStorage.setItem(THEME_STORAGE, currentTheme);
+    applyTheme(currentTheme);
+  }
+
   function applyLanguage() {
     const selected = {
       continent: elements.continentFilter.value,
@@ -880,18 +953,21 @@
     elements.countryCountLabel.textContent = t("statCountries");
     elements.languageLabel.textContent = t("language");
     elements.mapProviderLabel.textContent = t("mapProvider");
+    elements.themeLabel.textContent = t("theme");
+    elements.themePicker.setAttribute("aria-label", t("theme"));
     elements.searchLabel.textContent = t("search");
     elements.searchInput.placeholder = t("searchPlaceholder");
     elements.continentLabel.textContent = t("continent");
     elements.countryLabel.textContent = t("country");
     elements.categoryLabel.textContent = t("category");
     elements.resetFiltersText.textContent = t("reset");
-    elements.toggleListText.textContent = t("list");
+    updateListToggleLabel();
     elements.mapNoteTitle.textContent = t("noteTitle");
     elements.mapNoteBody.textContent = t(noteBodyKeyForProvider());
     elements.apiKeyLabel.textContent = t("apiKeyLabel");
     elements.apiKeyButtonText.textContent = t("apiKeyButton");
     buildProviderSelect();
+    buildThemePicker();
 
     buildSelect(
       elements.continentFilter,
@@ -934,6 +1010,35 @@
     elements.mapProviderSelect.value = currentProvider;
   }
 
+  function buildThemePicker() {
+    const buttons = THEMES.map((theme) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "theme-option";
+      button.dataset.theme = theme.key;
+      button.setAttribute("role", "radio");
+      button.style.setProperty("--swatch-start", theme.swatchStart);
+      button.style.setProperty("--swatch-end", theme.swatchEnd);
+      button.innerHTML = `
+        <span class="theme-swatch" aria-hidden="true"></span>
+        <span>${escapeHtml(t(theme.labelKey))}</span>
+      `;
+      return button;
+    });
+
+    elements.themePicker.replaceChildren(...buttons);
+    updateThemePickerState();
+  }
+
+  function updateThemePickerState() {
+    elements.themePicker.querySelectorAll("[data-theme]").forEach((button) => {
+      const isSelected = button.dataset.theme === currentTheme;
+      button.classList.toggle("selected", isSelected);
+      button.setAttribute("aria-checked", String(isSelected));
+      button.tabIndex = isSelected ? 0 : -1;
+    });
+  }
+
   function getInitialLanguage() {
     let storedLanguage = "";
 
@@ -951,6 +1056,28 @@
     const params = new URLSearchParams(window.location.search);
     const requestedProvider = (params.get("provider") || params.get("mapProvider") || "").trim();
     return MAP_PROVIDERS.includes(requestedProvider) ? requestedProvider : DEFAULT_MAP_PROVIDER;
+  }
+
+  function getInitialTheme() {
+    let storedTheme = "";
+
+    try {
+      storedTheme = localStorage.getItem(THEME_STORAGE) || "";
+    } catch (error) {
+      storedTheme = "";
+    }
+
+    return normalizeTheme(storedTheme);
+  }
+
+  function normalizeTheme(theme) {
+    return THEMES.some((item) => item.key === theme) ? theme : DEFAULT_THEME;
+  }
+
+  function applyTheme(theme) {
+    currentTheme = normalizeTheme(theme);
+    document.documentElement.dataset.theme = currentTheme;
+    updateThemePickerState();
   }
 
   function noteBodyKeyForProvider() {
@@ -988,6 +1115,30 @@
   function closeMapHelp() {
     elements.mapHelpPopover.classList.remove("open");
     elements.mapHelp.setAttribute("aria-expanded", "false");
+  }
+
+  function setListCollapsed(collapsed, shouldFocus = false) {
+    listCollapsed = collapsed;
+    elements.landmarkList.classList.toggle("collapsed", listCollapsed);
+    elements.toggleList.classList.toggle("active", !listCollapsed);
+    elements.toggleList.setAttribute("aria-expanded", String(!listCollapsed));
+    updateListToggleLabel();
+
+    if (!listCollapsed && shouldFocus) {
+      window.requestAnimationFrame(() => {
+        elements.landmarkList.scrollIntoView({ block: "nearest" });
+        elements.landmarkList.focus({ preventScroll: true });
+        elements.landmarkList.classList.add("list-flash");
+        window.setTimeout(() => {
+          elements.landmarkList.classList.remove("list-flash");
+        }, 700);
+      });
+    }
+  }
+
+  function updateListToggleLabel() {
+    elements.toggleListText.textContent = listCollapsed ? t("list") : t("hideList");
+    elements.toggleList.title = listCollapsed ? t("list") : t("hideList");
   }
 
   function setSidebarCollapsed(collapsed) {

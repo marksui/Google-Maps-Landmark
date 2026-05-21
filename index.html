@@ -81,6 +81,11 @@
             <select id="mapProviderSelect"></select>
           </label>
 
+          <div class="field theme-field">
+            <span id="themeLabel">主题</span>
+            <div id="themePicker" class="theme-picker" role="radiogroup" aria-label="主题"></div>
+          </div>
+
           <label class="field search-field">
             <span id="searchLabel">搜索</span>
             <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -107,7 +112,13 @@
               <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
               <span id="resetFiltersText">重置</span>
             </button>
-            <button id="toggleList" class="secondary-button" type="button">
+            <button
+              id="toggleList"
+              class="secondary-button"
+              type="button"
+              aria-controls="landmarkList"
+              aria-expanded="false"
+            >
               <i class="fa-solid fa-list" aria-hidden="true"></i>
               <span id="toggleListText">列表</span>
             </button>
@@ -120,7 +131,7 @@
         </section>
 
         <section class="legend" id="legend" aria-label="Icon legend"></section>
-        <section class="landmark-list" id="landmarkList" aria-label="Landmarks"></section>
+        <section class="landmark-list collapsed" id="landmarkList" aria-label="Landmarks" tabindex="-1"></section>
       </aside>
 
       <section class="map-pane" id="mapPane" aria-label="Map">
