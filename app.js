@@ -1789,7 +1789,7 @@
   }
 
   function scrollMapIntoView() {
-    if (!window.matchMedia("(max-width: 860px)").matches) {
+    if (!window.matchMedia("(max-width: 680px)").matches) {
       return;
     }
 
