@@ -1355,6 +1355,7 @@
       return;
     }
 
+    elements.map.classList.toggle("labels-visible", (map.getZoom() || DEFAULT_ZOOM) >= 4);
     openMapLayer.clearLayers();
     markersById.clear();
 
@@ -1592,9 +1593,9 @@
           <span class="city-marker-hint">${escapeHtml(t("zoomPrompt"))}</span>
         </span>
       `,
-      iconSize: [112, 70],
-      iconAnchor: [56, 42],
-      popupAnchor: [0, -42],
+      iconSize: [88, 58],
+      iconAnchor: [44, 36],
+      popupAnchor: [0, -38],
     });
   }
 
