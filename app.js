@@ -3,8 +3,7 @@
   const LANGUAGE_STORAGE = "landmarkMapLanguage";
   const DEFAULT_MAP_PROVIDER = "openmap";
   const MAP_PROVIDER_STORAGE = "landmarkMapProvider";
-  const MAP_PROVIDERS = ["openmap", "offline", "google"];
-  const OFFLINE_INDIVIDUAL_LIMIT = 140;
+  const MAP_PROVIDERS = ["openmap", "google"];
   const OPENMAP_INDIVIDUAL_LIMIT = 180;
   const OPENMAP_INDIVIDUAL_ZOOM = 8;
   const SUPPORTED_LANGUAGES = {
@@ -89,7 +88,6 @@
       language: "语言",
       mapProvider: "地图来源",
       providerOpenMap: "OpenStreetMap",
-      providerOffline: "本地离线",
       providerGoogle: "Google 官方",
       search: "搜索",
       searchPlaceholder: "城市、国家、地标名称",
@@ -104,8 +102,6 @@
       noteTitle: "说明",
       noteBodyOpenMap:
         "当前使用 OpenStreetMap/Leaflet 地图，可正常拖动、滚轮缩放、双击缩放和框选当前结果；低缩放按城市聚合，放大后展开本地灰白 miniature。",
-      noteBodyOffline:
-        "当前使用本地离线示意地图，不加载 Google Maps API；默认按城市聚合防止卡死，搜索或筛选后展开单个灰白 miniature。",
       noteBodyGoogle:
         "地图底图由 Google Maps 官方 API 实时渲染；列表点位使用城市级坐标展开，点击点位可查看图片、分类和一句短介绍。",
       apiKeyLabel: "Google Maps API key",
@@ -117,8 +113,8 @@
       apiLoadFailure: "Google Maps 加载失败，请检查 key、Maps JavaScript API 和来源限制。",
       apiInvalidKey: "Google Maps key 无效，或 Maps JavaScript API 没有启用。",
       apiLoadMapFirst: "先加载 Google Maps 官方地图。",
-      googleUnavailable: "Google 地图没加载成功，已切回本地离线地图。",
-      openMapUnavailable: "OpenStreetMap 地图组件没加载成功，已切回本地离线地图。",
+      googleUnavailable: "Google 地图没加载成功，已切回 OpenStreetMap。",
+      openMapUnavailable: "OpenStreetMap 地图组件没加载成功，请检查网络后刷新页面。",
       closePopup: "关闭",
       clusterSummary: (count, city) => `${city} · ${count} 个地标`,
       zoomPrompt: "点击城市或继续放大会展开单个地标 miniature。",
@@ -175,7 +171,6 @@
       language: "Language",
       mapProvider: "Map source",
       providerOpenMap: "OpenStreetMap",
-      providerOffline: "Local offline",
       providerGoogle: "Google official",
       search: "Search",
       searchPlaceholder: "City, country, or landmark",
@@ -190,8 +185,6 @@
       noteTitle: "Note",
       noteBodyOpenMap:
         "The current map uses OpenStreetMap with Leaflet, so dragging, wheel zoom, double-click zoom, and fitting results behave like a real map. Low zooms cluster by city; zooming in expands local gray miniatures.",
-      noteBodyOffline:
-        "The current map is a local offline schematic. It does not load Google Maps API; it clusters by city by default and expands gray miniatures after search or filtering.",
       noteBodyGoogle:
         "The base map is rendered live by the official Google Maps API. List points use city-level anchors, and each popup shows an image, category, and short description.",
       apiKeyLabel: "Google Maps API key",
@@ -203,8 +196,8 @@
       apiLoadFailure: "Google Maps failed to load. Check the key, Maps JavaScript API, and referrer restrictions.",
       apiInvalidKey: "The Google Maps key is invalid, or Maps JavaScript API is not enabled.",
       apiLoadMapFirst: "Load the official Google map first.",
-      googleUnavailable: "Google Maps did not load, so the app switched back to the local offline map.",
-      openMapUnavailable: "OpenStreetMap did not load, so the app switched back to the local offline map.",
+      googleUnavailable: "Google Maps did not load, so the app switched back to OpenStreetMap.",
+      openMapUnavailable: "OpenStreetMap did not load. Check the network connection and refresh the page.",
       closePopup: "Close",
       clusterSummary: (count, city) => `${city} · ${count} landmarks`,
       zoomPrompt: "Click the city or keep zooming to expand individual landmark miniatures.",
@@ -261,7 +254,6 @@
       language: "言語",
       mapProvider: "地図ソース",
       providerOpenMap: "OpenStreetMap",
-      providerOffline: "ローカルオフライン",
       providerGoogle: "Google 公式",
       search: "検索",
       searchPlaceholder: "都市、国、ランドマーク名",
@@ -276,8 +268,6 @@
       noteTitle: "説明",
       noteBodyOpenMap:
         "現在の地図は OpenStreetMap と Leaflet を使用しており、ドラッグ、ホイールズーム、ダブルクリックズーム、結果へのフィットが通常の地図として動作します。低ズームでは都市単位で集約し、拡大するとローカルの灰色 miniature を表示します。",
-      noteBodyOffline:
-        "現在の地図はローカルのオフライン模式図です。Google Maps API は読み込まず、初期表示は都市ごとに集約し、検索や絞り込み後に灰色の miniature を展開します。",
       noteBodyGoogle:
         "ベースマップは Google Maps 公式 API でリアルタイムに描画されます。一覧の地点は都市レベルの座標をもとに配置され、ポップアップには画像、分類、短い説明が表示されます。",
       apiKeyLabel: "Google Maps API キー",
@@ -289,8 +279,8 @@
       apiLoadFailure: "Google Maps を読み込めません。キー、Maps JavaScript API、参照元制限を確認してください。",
       apiInvalidKey: "Google Maps キーが無効、または Maps JavaScript API が有効になっていません。",
       apiLoadMapFirst: "先に Google 公式地図を読み込んでください。",
-      googleUnavailable: "Google Maps を読み込めなかったため、ローカルのオフライン地図に切り替えました。",
-      openMapUnavailable: "OpenStreetMap を読み込めなかったため、ローカルのオフライン地図に切り替えました。",
+      googleUnavailable: "Google Maps を読み込めなかったため、OpenStreetMap に切り替えました。",
+      openMapUnavailable: "OpenStreetMap を読み込めません。ネットワークを確認してページを再読み込みしてください。",
       closePopup: "閉じる",
       clusterSummary: (count, city) => `${city} · ${count} 件のランドマーク`,
       zoomPrompt: "都市をクリックするか、さらに拡大すると個別のランドマーク miniature が表示されます。",
@@ -347,7 +337,6 @@
       language: "Idioma",
       mapProvider: "Fuente del mapa",
       providerOpenMap: "OpenStreetMap",
-      providerOffline: "Local sin conexión",
       providerGoogle: "Google oficial",
       search: "Buscar",
       searchPlaceholder: "Ciudad, país o lugar",
@@ -362,8 +351,6 @@
       noteTitle: "Nota",
       noteBodyOpenMap:
         "El mapa actual usa OpenStreetMap con Leaflet, así que arrastrar, hacer zoom con la rueda, doble clic y ajustar resultados funcionan como en un mapa real. En zoom bajo agrupa por ciudad; al acercarte despliega miniaturas grises locales.",
-      noteBodyOffline:
-        "El mapa actual es un esquema local sin conexión. No carga Google Maps API; agrupa por ciudad al inicio y despliega miniaturas grises al buscar o filtrar.",
       noteBodyGoogle:
         "El mapa base se renderiza en tiempo real con la API oficial de Google Maps. Los puntos de la lista usan coordenadas a nivel de ciudad, y cada ventana muestra imagen, categoría y una breve descripción.",
       apiKeyLabel: "Clave de API de Google Maps",
@@ -375,8 +362,8 @@
       apiLoadFailure: "Google Maps no pudo cargarse. Revisa la clave, Maps JavaScript API y las restricciones de referencia.",
       apiInvalidKey: "La clave de Google Maps no es válida o Maps JavaScript API no está habilitada.",
       apiLoadMapFirst: "Carga primero el mapa oficial de Google.",
-      googleUnavailable: "Google Maps no se cargó, así que la app volvió al mapa local sin conexión.",
-      openMapUnavailable: "OpenStreetMap no se cargó, así que la app volvió al mapa local sin conexión.",
+      googleUnavailable: "Google Maps no se cargó, así que la app volvió a OpenStreetMap.",
+      openMapUnavailable: "OpenStreetMap no se cargó. Revisa la conexión de red y recarga la página.",
       closePopup: "Cerrar",
       clusterSummary: (count, city) => `${city} · ${count} lugares`,
       zoomPrompt: "Haz clic en la ciudad o sigue acercándote para desplegar miniaturas individuales.",
@@ -771,7 +758,6 @@
   let infoWindow = null;
   let mapsApi = null;
   let markerApi = null;
-  let offlinePopup = null;
   let openMapLayer = null;
   let openMapRenderTimer = 0;
 
@@ -907,7 +893,6 @@
   function buildProviderSelect() {
     elements.mapProviderSelect.replaceChildren(
       new Option(t("providerOpenMap"), "openmap"),
-      new Option(t("providerOffline"), "offline"),
       new Option(t("providerGoogle"), "google"),
     );
     elements.mapProviderSelect.value = currentProvider;
@@ -935,10 +920,6 @@
   function noteBodyKeyForProvider() {
     if (currentProvider === "google") {
       return "noteBodyGoogle";
-    }
-
-    if (currentProvider === "offline") {
-      return "noteBodyOffline";
     }
 
     return "noteBodyOpenMap";
@@ -1013,8 +994,6 @@
   }
 
   function initializeMapProvider() {
-    closeOfflinePopup();
-
     if (currentProvider === "openmap") {
       initializeOpenMap();
       return;
@@ -1026,22 +1005,19 @@
       return;
     }
 
-    destroyOpenMap();
-    initializeOfflineMap();
+    currentProvider = DEFAULT_MAP_PROVIDER;
+    initializeOpenMap();
   }
 
   function initializeOpenMap(messageKey = "") {
     clearGoogleMarkers();
-    closeOfflinePopup();
-    offlinePopup = null;
     hideApiKeyPanel();
     destroyOpenMap();
 
     if (!window.L) {
-      currentProvider = "offline";
-      localStorage.setItem(MAP_PROVIDER_STORAGE, currentProvider);
-      applyLanguage();
-      initializeOfflineMap("openMapUnavailable");
+      map = null;
+      elements.map.className = "openmap";
+      elements.map.replaceChildren(createMapError(t("openMapUnavailable")));
       return;
     }
 
@@ -1089,47 +1065,11 @@
     }
   }
 
-  function initializeOfflineMap(messageKey = "") {
-    clearGoogleMarkers();
-    destroyOpenMap();
-    map = null;
-    infoWindow = null;
-    hideApiKeyPanel();
-    elements.map.className = "offline-map";
-    elements.map.replaceChildren(createOfflineMapSurface(), createOfflinePopupElement());
-    renderMarkers();
-
-    if (messageKey) {
-      showMapToast(messageKey);
-    }
-  }
-
-  function createOfflineMapSurface() {
-    const surface = document.createElement("div");
-    surface.className = "offline-map-surface";
-    surface.innerHTML = `
-      <span class="offline-grid" aria-hidden="true"></span>
-      <span class="offline-land offline-land-north-america" aria-hidden="true"></span>
-      <span class="offline-land offline-land-south-america" aria-hidden="true"></span>
-      <span class="offline-land offline-land-europe" aria-hidden="true"></span>
-      <span class="offline-land offline-land-africa" aria-hidden="true"></span>
-      <span class="offline-land offline-land-asia" aria-hidden="true"></span>
-      <span class="offline-land offline-land-oceania" aria-hidden="true"></span>
-      <span class="offline-map-label offline-map-label-na">${escapeHtml(continentLabelFor("North America"))}</span>
-      <span class="offline-map-label offline-map-label-sa">${escapeHtml(continentLabelFor("South America"))}</span>
-      <span class="offline-map-label offline-map-label-eu">${escapeHtml(continentLabelFor("Europe"))}</span>
-      <span class="offline-map-label offline-map-label-af">${escapeHtml(continentLabelFor("Africa"))}</span>
-      <span class="offline-map-label offline-map-label-as">${escapeHtml(continentLabelFor("Asia"))}</span>
-      <span class="offline-map-label offline-map-label-oc">${escapeHtml(continentLabelFor("Oceania"))}</span>
-    `;
-    return surface;
-  }
-
-  function createOfflinePopupElement() {
-    offlinePopup = document.createElement("div");
-    offlinePopup.className = "offline-popup hidden";
-    offlinePopup.setAttribute("role", "dialog");
-    return offlinePopup;
+  function createMapError(message) {
+    const error = document.createElement("div");
+    error.className = "map-error";
+    error.textContent = message;
+    return error;
   }
 
   async function initializeGoogleMap(apiKey) {
@@ -1170,10 +1110,10 @@
     } catch (error) {
       console.error(error);
       showApiKeyPanel("apiLoadFailure", true);
-      currentProvider = "offline";
+      currentProvider = DEFAULT_MAP_PROVIDER;
       localStorage.setItem(MAP_PROVIDER_STORAGE, currentProvider);
       applyLanguage();
-      initializeOfflineMap("googleUnavailable");
+      initializeOpenMap("googleUnavailable");
     }
   }
 
@@ -1402,11 +1342,6 @@
       return;
     }
 
-    if (currentProvider === "offline") {
-      renderOfflineMarkers();
-      return;
-    }
-
     renderGoogleMarkers();
   }
 
@@ -1526,65 +1461,6 @@
       });
       marker.addListener("click", () => openInfoWindow(marker, landmark));
       markersById.set(landmark.id, { marker, landmark });
-    });
-  }
-
-  function renderOfflineMarkers() {
-    const surface = elements.map.querySelector(".offline-map-surface");
-
-    if (!surface) {
-      return;
-    }
-
-    clearOfflinePopups();
-    surface.querySelectorAll(".offline-marker").forEach((marker) => marker.remove());
-    surface.querySelectorAll(".offline-city-marker").forEach((marker) => marker.remove());
-    markersById.clear();
-
-    if (visibleLandmarks.length > OFFLINE_INDIVIDUAL_LIMIT) {
-      renderOfflineCityMarkers(surface);
-      return;
-    }
-
-    visibleLandmarks.forEach((landmark) => {
-      const marker = document.createElement("button");
-      const { x, y } = projectCoordinates(landmark.plotLat, landmark.plotLng);
-      marker.type = "button";
-      marker.className = "offline-marker";
-      marker.title = landmark.name;
-      marker.style.left = `${x}%`;
-      marker.style.top = `${y}%`;
-      marker.innerHTML = `
-        <img src="${escapeHtml(landmark.iconPath)}" alt="" aria-hidden="true" loading="lazy" />
-        <span>${escapeHtml(labelText(landmark.name))}</span>
-      `;
-      marker.addEventListener("click", () => openOfflinePopup(marker, landmark));
-      surface.appendChild(marker);
-      markersById.set(landmark.id, { marker, landmark });
-    });
-  }
-
-  function renderOfflineCityMarkers(surface) {
-    const groups = groupVisibleLandmarksByCity();
-
-    groups.forEach((group) => {
-      const marker = document.createElement("button");
-      const { x, y } = projectCoordinates(group.lat, group.lng);
-      marker.type = "button";
-      marker.className = "offline-city-marker";
-      marker.title = tf("clusterSummary", group.items.length, group.city);
-      marker.style.left = `${x}%`;
-      marker.style.top = `${y}%`;
-      marker.innerHTML = `
-        <span class="city-miniature" aria-hidden="true">
-          <img src="assets/miniatures/types/${escapeHtml(categoryIconType(group.category))}.svg" alt="" loading="lazy" />
-          <strong>${group.items.length}</strong>
-        </span>
-        <span class="city-marker-label">${escapeHtml(group.city)}</span>
-        <span class="city-marker-hint">${escapeHtml(t("zoomPrompt"))}</span>
-      `;
-      marker.addEventListener("click", () => openOfflineGroupPopup(marker, group));
-      surface.appendChild(marker);
     });
   }
 
@@ -1773,128 +1649,12 @@
     });
   }
 
-  function openOfflinePopup(marker, landmark) {
-    if (!offlinePopup) {
-      return;
-    }
-
-    markersById.forEach(({ marker: itemMarker }) => {
-      itemMarker.classList?.remove("active");
-    });
-    marker.classList.add("active");
-    offlinePopup.innerHTML = `
-      <button class="offline-popup-close" type="button" aria-label="${escapeHtml(t("closePopup"))}">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
-      ${createPopup(landmark)}
-    `;
-    offlinePopup.style.left = marker.style.left;
-    offlinePopup.style.top = marker.style.top;
-    offlinePopup.classList.remove("hidden");
-    offlinePopup.querySelector(".offline-popup-close")?.addEventListener("click", closeOfflinePopup);
-  }
-
-  function openOfflineGroupPopup(marker, group) {
-    if (!offlinePopup) {
-      return;
-    }
-
-    closeOfflinePopup();
-    marker.classList.add("active");
-    offlinePopup.innerHTML = `
-      <button class="offline-popup-close" type="button" aria-label="${escapeHtml(t("closePopup"))}">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
-      <article class="popup-card city-popup-card">
-        <div class="popup-head">
-          ${categoryIconMarkup(group.category, "popup-icon")}
-          <div>
-            <h2 class="popup-title">${escapeHtml(group.city)}</h2>
-            <p class="popup-meta">${escapeHtml(countryLabelFor(group.country))} · ${escapeHtml(tf("clusterSummary", group.items.length, group.city))}</p>
-          </div>
-        </div>
-        <div class="city-popup-list">
-          ${group.items
-            .map(
-              (landmark) => `
-                <button class="city-popup-item" type="button" data-landmark-id="${escapeHtml(landmark.id)}">
-                  ${categoryIconMarkup(landmark.category, "legend-dot")}
-                  <span>${escapeHtml(landmark.name)}</span>
-                </button>
-              `,
-            )
-            .join("")}
-        </div>
-      </article>
-    `;
-    offlinePopup.style.left = marker.style.left;
-    offlinePopup.style.top = marker.style.top;
-    offlinePopup.classList.remove("hidden");
-    offlinePopup.querySelector(".offline-popup-close")?.addEventListener("click", closeOfflinePopup);
-    offlinePopup.querySelectorAll(".city-popup-item").forEach((button) => {
-      button.addEventListener("click", () => {
-        const landmark = group.items.find((item) => item.id === button.dataset.landmarkId);
-        if (landmark) {
-          openOfflineLandmarkAtPosition(landmark);
-        }
-      });
-    });
-  }
-
-  function openOfflineLandmarkAtPosition(landmark) {
-    if (!offlinePopup) {
-      return;
-    }
-
-    markersById.forEach(({ marker }) => {
-      marker.classList?.remove("active");
-    });
-    const { x, y } = projectCoordinates(landmark.plotLat, landmark.plotLng);
-    offlinePopup.innerHTML = `
-      <button class="offline-popup-close" type="button" aria-label="${escapeHtml(t("closePopup"))}">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
-      ${createPopup(landmark)}
-    `;
-    offlinePopup.style.left = `${x}%`;
-    offlinePopup.style.top = `${y}%`;
-    offlinePopup.classList.remove("hidden");
-    offlinePopup.querySelector(".offline-popup-close")?.addEventListener("click", closeOfflinePopup);
-  }
-
-  function closeOfflinePopup() {
-    if (offlinePopup) {
-      offlinePopup.classList.add("hidden");
-      offlinePopup.replaceChildren();
-    }
-    markersById.forEach(({ marker }) => {
-      marker.classList?.remove("active");
-    });
-    elements.map.querySelectorAll(".offline-city-marker.active").forEach((marker) => {
-      marker.classList.remove("active");
-    });
-  }
-
-  function clearOfflinePopups() {
-    if (!offlinePopup) {
-      return;
-    }
-    offlinePopup.classList.add("hidden");
-    offlinePopup.replaceChildren();
-  }
-
   function showMapToast(messageKey) {
     const toast = document.createElement("div");
     toast.className = "map-toast";
     toast.textContent = t(messageKey);
     elements.map.appendChild(toast);
     window.setTimeout(() => toast.remove(), 4200);
-  }
-
-  function projectCoordinates(lat, lng) {
-    const x = Math.min(98, Math.max(2, ((lng + 180) / 360) * 100));
-    const y = Math.min(96, Math.max(4, ((90 - lat) / 180) * 100));
-    return { x, y };
   }
 
   function labelText(name) {
@@ -1942,19 +1702,6 @@
   function focusLandmark(id) {
     if (currentProvider === "openmap") {
       focusOpenMapLandmark(id);
-      return;
-    }
-
-    if (currentProvider === "offline") {
-      const entry = markersById.get(id);
-      if (entry) {
-        openOfflinePopup(entry.marker, entry.landmark);
-        return;
-      }
-      const landmark = visibleLandmarks.find((item) => item.id === id) || landmarks.find((item) => item.id === id);
-      if (landmark) {
-        openOfflineLandmarkAtPosition(landmark);
-      }
       return;
     }
 
@@ -2017,12 +1764,6 @@
         padding: [58, 58],
         maxZoom,
       });
-      return;
-    }
-
-    if (currentProvider === "offline") {
-      closeOfflinePopup();
-      renderOfflineMarkers();
       return;
     }
 
