@@ -14,6 +14,10 @@ index.html?googleMapsKey=YOUR_API_KEY
 
 The app uses the official Google Maps JavaScript API with the `hybrid` map type so Google's own map labels, POIs, and landmark rendering come from Google at runtime.
 
+## Languages
+
+The site supports Chinese, English, Japanese, and Spanish from the language selector in the sidebar. UI labels, filter labels, category names, the API-key panel, the explanation note, popup actions, and generated short descriptions are localized. The selected language is stored in local browser storage and is also passed to Google Maps when the official map is loaded.
+
 ## What It Includes
 
 - 766 landmarks from the provided list
@@ -21,9 +25,9 @@ The app uses the official Google Maps JavaScript API with the `hybrid` map type 
 - Official Google Maps runtime rendering for the map surface
 - Lightweight result markers for the provided landmark list
 - Landmark images for 764 of 766 popup cards, crawled from Wikipedia, Wikidata, and Wikimedia Commons
-- Search plus continent, country/region, and icon-type filters
+- Search plus language, continent, country/region, and icon-type filters
 - A Google Maps search link in each popup
-- A short description in every landmark popup, using crawled summaries when available
+- A short description in every landmark popup, localized by the selected language
 
 The included coordinates are city-level anchors with nearby spread markers so every landmark is visible. Exact landmark coordinates can be added later by replacing or extending the data in `data.js`.
 

@@ -1,4 +1,365 @@
 (function () {
+  const DEFAULT_LANGUAGE = "zh";
+  const LANGUAGE_STORAGE = "landmarkMapLanguage";
+  const SUPPORTED_LANGUAGES = {
+    zh: { label: "中文", htmlLang: "zh-CN", mapsLanguage: "zh-CN", locale: "zh-CN" },
+    en: { label: "English", htmlLang: "en", mapsLanguage: "en", locale: "en-US" },
+    ja: { label: "日本語", htmlLang: "ja", mapsLanguage: "ja", locale: "ja-JP" },
+    es: { label: "Español", htmlLang: "es", mapsLanguage: "es", locale: "es-ES" },
+  };
+
+  const COUNTRY_CODES = {
+    Argentina: "AR",
+    Australia: "AU",
+    Austria: "AT",
+    Azerbaijan: "AZ",
+    Belgium: "BE",
+    Brazil: "BR",
+    Cambodia: "KH",
+    Canada: "CA",
+    Chile: "CL",
+    China: "CN",
+    Colombia: "CO",
+    Croatia: "HR",
+    Czechia: "CZ",
+    Denmark: "DK",
+    Egypt: "EG",
+    France: "FR",
+    Germany: "DE",
+    Greece: "GR",
+    "Hong Kong": "HK",
+    Hungary: "HU",
+    India: "IN",
+    Indonesia: "ID",
+    Iran: "IR",
+    Italy: "IT",
+    Japan: "JP",
+    Kenya: "KE",
+    Malaysia: "MY",
+    Mexico: "MX",
+    Morocco: "MA",
+    Netherlands: "NL",
+    Nigeria: "NG",
+    Norway: "NO",
+    Pakistan: "PK",
+    Peru: "PE",
+    Philippines: "PH",
+    Poland: "PL",
+    Portugal: "PT",
+    Romania: "RO",
+    Russia: "RU",
+    "Saudi Arabia": "SA",
+    Singapore: "SG",
+    "South Africa": "ZA",
+    "South Korea": "KR",
+    Spain: "ES",
+    Sweden: "SE",
+    Switzerland: "CH",
+    Taiwan: "TW",
+    Thailand: "TH",
+    Turkey: "TR",
+    Ukraine: "UA",
+    "United Arab Emirates": "AE",
+    "United Kingdom": "GB",
+    "United States": "US",
+    Vietnam: "VN",
+  };
+
+  const I18N = {
+    zh: {
+      documentTitle: "Google Maps Miniatures 地标地图",
+      appTitle: "地标地图",
+      sidebarLabel: "地标筛选和列表",
+      mapLabel: "地图",
+      statsLabel: "地图统计",
+      controlsLabel: "筛选",
+      legendLabel: "图标说明",
+      listLabel: "地标列表",
+      noteLabel: "地图说明",
+      fitVisible: "显示当前结果",
+      statLandmarks: "地标",
+      statCities: "城市",
+      statCountries: "国家/地区",
+      language: "语言",
+      search: "搜索",
+      searchPlaceholder: "城市、国家、地标名称",
+      continent: "洲",
+      country: "国家/地区",
+      category: "图标类型",
+      reset: "重置",
+      list: "列表",
+      allContinents: "全部洲",
+      allCountries: "全部国家/地区",
+      allCategories: "全部图标类型",
+      noteTitle: "说明",
+      noteBody:
+        "地图底图由 Google Maps 官方 API 实时渲染；列表点位使用城市级坐标展开，点击点位可查看图片、分类和一句短介绍。",
+      apiKeyLabel: "Google Maps API key",
+      apiKeyButton: "加载官方地图",
+      apiLocalOnly: "key 只保存在本机浏览器。",
+      apiEnterKey: "输入 key 后加载 Google 官方地图。",
+      apiMissingKey: "请输入 Google Maps API key。",
+      apiLoading: "正在加载 Google 官方地图...",
+      apiLoadFailure: "Google Maps 加载失败，请检查 key、Maps JavaScript API 和来源限制。",
+      apiInvalidKey: "Google Maps key 无效，或 Maps JavaScript API 没有启用。",
+      apiLoadMapFirst: "先加载 Google Maps 官方地图。",
+      mediaSource: "Wikipedia / Wikimedia",
+      openGoogleMaps: "在 Google Maps 打开",
+      continents: {
+        "North America": "北美洲",
+        Europe: "欧洲",
+        Asia: "亚洲",
+        "South America": "南美洲",
+        Africa: "非洲",
+        Oceania: "大洋洲",
+      },
+      categories: {
+        museum: "博物馆/美术馆",
+        faith: "宗教建筑",
+        palace: "宫殿/城堡",
+        tower: "高塔/天际线",
+        monument: "纪念碑/广场",
+        civic: "市政/公共建筑",
+        culture: "剧院/文化",
+        science: "科学/教育",
+        sports: "体育场馆",
+        landmark: "其他地标",
+      },
+      place: (city, country) => `${city}，${country}`,
+      descriptions: {
+        museum: (name, place) => `${name} 是位于 ${place} 的博物馆或美术馆类地标，适合了解当地艺术、历史、科学或文化收藏。`,
+        faith: (name, place) => `${name} 是位于 ${place} 的宗教建筑地标，常以礼仪空间、建筑细节和城市历史吸引游客。`,
+        palace: (name, place) => `${name} 是位于 ${place} 的宫殿或城堡类景点，通常承载当地王室、政治或防御历史。`,
+        tower: (name, place) => `${name} 是位于 ${place} 的塔楼或天际线地标，常用于俯瞰城市和辨认城市轮廓。`,
+        monument: (name, place) => `${name} 是位于 ${place} 的纪念性地标，记录城市历史、重要人物或公共记忆。`,
+        civic: (name, place) => `${name} 是位于 ${place} 的公共建筑地标，体现城市治理、公共服务或国家象征。`,
+        culture: (name, place) => `${name} 是位于 ${place} 的文化演出或艺术空间，常承载剧院、音乐和城市活动。`,
+        science: (name, place) => `${name} 是位于 ${place} 的科学或教育类景点，适合探索自然、科技、工业或航天主题。`,
+        sports: (name, place) => `${name} 是位于 ${place} 的体育场馆地标，常与大型赛事和城市体育文化相关。`,
+        landmark: (name, place) => `${name} 是位于 ${place} 的城市地标，适合加入地图清单进行打卡和路线规划。`,
+      },
+    },
+    en: {
+      documentTitle: "Google Maps Miniatures Landmark Map",
+      appTitle: "Landmark Map",
+      sidebarLabel: "Landmark filters and list",
+      mapLabel: "Map",
+      statsLabel: "Map statistics",
+      controlsLabel: "Filters",
+      legendLabel: "Icon legend",
+      listLabel: "Landmarks",
+      noteLabel: "Map note",
+      fitVisible: "Fit current results",
+      statLandmarks: "Landmarks",
+      statCities: "Cities",
+      statCountries: "Countries/regions",
+      language: "Language",
+      search: "Search",
+      searchPlaceholder: "City, country, or landmark",
+      continent: "Continent",
+      country: "Country/region",
+      category: "Icon type",
+      reset: "Reset",
+      list: "List",
+      allContinents: "All continents",
+      allCountries: "All countries/regions",
+      allCategories: "All icon types",
+      noteTitle: "Note",
+      noteBody:
+        "The base map is rendered live by the official Google Maps API. List points use city-level anchors, and each popup shows an image, category, and short description.",
+      apiKeyLabel: "Google Maps API key",
+      apiKeyButton: "Load official map",
+      apiLocalOnly: "The key is stored only in this browser.",
+      apiEnterKey: "Enter a key to load the official Google map.",
+      apiMissingKey: "Please enter a Google Maps API key.",
+      apiLoading: "Loading the official Google map...",
+      apiLoadFailure: "Google Maps failed to load. Check the key, Maps JavaScript API, and referrer restrictions.",
+      apiInvalidKey: "The Google Maps key is invalid, or Maps JavaScript API is not enabled.",
+      apiLoadMapFirst: "Load the official Google map first.",
+      mediaSource: "Wikipedia / Wikimedia",
+      openGoogleMaps: "Open in Google Maps",
+      continents: {
+        "North America": "North America",
+        Europe: "Europe",
+        Asia: "Asia",
+        "South America": "South America",
+        Africa: "Africa",
+        Oceania: "Oceania",
+      },
+      categories: {
+        museum: "Museums/galleries",
+        faith: "Religious buildings",
+        palace: "Palaces/castles",
+        tower: "Towers/skyline",
+        monument: "Monuments/squares",
+        civic: "Civic/public buildings",
+        culture: "Theater/culture",
+        science: "Science/education",
+        sports: "Sports venues",
+        landmark: "Other landmarks",
+      },
+      place: (city, country) => `${city}, ${country}`,
+      descriptions: {
+        museum: (name, place) => `${name} is a museum or gallery landmark in ${place}, useful for exploring local art, history, science, or culture.`,
+        faith: (name, place) => `${name} is a religious landmark in ${place}, known for worship spaces, architectural detail, and city history.`,
+        palace: (name, place) => `${name} is a palace or castle landmark in ${place}, often tied to royal, political, or defensive history.`,
+        tower: (name, place) => `${name} is a tower or skyline landmark in ${place}, often used for city views and orientation.`,
+        monument: (name, place) => `${name} is a commemorative landmark in ${place}, marking public memory, history, or notable figures.`,
+        civic: (name, place) => `${name} is a civic or public landmark in ${place}, reflecting government, public service, or national identity.`,
+        culture: (name, place) => `${name} is a cultural or performance landmark in ${place}, connected with theater, music, or city events.`,
+        science: (name, place) => `${name} is a science or education landmark in ${place}, suited to natural history, technology, industry, or space themes.`,
+        sports: (name, place) => `${name} is a sports venue landmark in ${place}, associated with major events and local sports culture.`,
+        landmark: (name, place) => `${name} is a city landmark in ${place}, useful for map check-ins and route planning.`,
+      },
+    },
+    ja: {
+      documentTitle: "Google Maps Miniatures ランドマークマップ",
+      appTitle: "ランドマークマップ",
+      sidebarLabel: "ランドマークの絞り込みと一覧",
+      mapLabel: "地図",
+      statsLabel: "地図の統計",
+      controlsLabel: "フィルター",
+      legendLabel: "アイコン凡例",
+      listLabel: "ランドマーク一覧",
+      noteLabel: "地図の説明",
+      fitVisible: "現在の結果を表示",
+      statLandmarks: "ランドマーク",
+      statCities: "都市",
+      statCountries: "国/地域",
+      language: "言語",
+      search: "検索",
+      searchPlaceholder: "都市、国、ランドマーク名",
+      continent: "大陸",
+      country: "国/地域",
+      category: "アイコンの種類",
+      reset: "リセット",
+      list: "一覧",
+      allContinents: "すべての大陸",
+      allCountries: "すべての国/地域",
+      allCategories: "すべての種類",
+      noteTitle: "説明",
+      noteBody:
+        "ベースマップは Google Maps 公式 API でリアルタイムに描画されます。一覧の地点は都市レベルの座標をもとに配置され、ポップアップには画像、分類、短い説明が表示されます。",
+      apiKeyLabel: "Google Maps API キー",
+      apiKeyButton: "公式地図を読み込む",
+      apiLocalOnly: "キーはこのブラウザ内にのみ保存されます。",
+      apiEnterKey: "キーを入力すると Google 公式地図を読み込みます。",
+      apiMissingKey: "Google Maps API キーを入力してください。",
+      apiLoading: "Google 公式地図を読み込み中...",
+      apiLoadFailure: "Google Maps を読み込めません。キー、Maps JavaScript API、参照元制限を確認してください。",
+      apiInvalidKey: "Google Maps キーが無効、または Maps JavaScript API が有効になっていません。",
+      apiLoadMapFirst: "先に Google 公式地図を読み込んでください。",
+      mediaSource: "Wikipedia / Wikimedia",
+      openGoogleMaps: "Google Maps で開く",
+      continents: {
+        "North America": "北アメリカ",
+        Europe: "ヨーロッパ",
+        Asia: "アジア",
+        "South America": "南アメリカ",
+        Africa: "アフリカ",
+        Oceania: "オセアニア",
+      },
+      categories: {
+        museum: "博物館/美術館",
+        faith: "宗教建築",
+        palace: "宮殿/城",
+        tower: "塔/スカイライン",
+        monument: "記念碑/広場",
+        civic: "行政/公共建築",
+        culture: "劇場/文化",
+        science: "科学/教育",
+        sports: "スポーツ施設",
+        landmark: "その他のランドマーク",
+      },
+      place: (city, country) => `${city}、${country}`,
+      descriptions: {
+        museum: (name, place) => `${name} は ${place} にある博物館または美術館系のランドマークで、地域の芸術、歴史、科学、文化に触れられます。`,
+        faith: (name, place) => `${name} は ${place} にある宗教建築のランドマークで、礼拝空間、建築の細部、都市の歴史が見どころです。`,
+        palace: (name, place) => `${name} は ${place} にある宮殿または城のランドマークで、王室、政治、防衛の歴史と結びついています。`,
+        tower: (name, place) => `${name} は ${place} にある塔またはスカイラインのランドマークで、街を眺めたり位置を把握したりする目印になります。`,
+        monument: (name, place) => `${name} は ${place} にある記念碑的なランドマークで、歴史、人物、公共の記憶を伝えます。`,
+        civic: (name, place) => `${name} は ${place} にある行政または公共建築のランドマークで、都市運営や公共性を象徴します。`,
+        culture: (name, place) => `${name} は ${place} にある文化・公演系のランドマークで、劇場、音楽、都市イベントと関わりがあります。`,
+        science: (name, place) => `${name} は ${place} にある科学・教育系のスポットで、自然、技術、産業、宇宙などのテーマに触れられます。`,
+        sports: (name, place) => `${name} は ${place} にあるスポーツ施設のランドマークで、大規模イベントや地域のスポーツ文化と関係しています。`,
+        landmark: (name, place) => `${name} は ${place} にある都市のランドマークで、地図でのチェックインやルート計画に役立ちます。`,
+      },
+    },
+    es: {
+      documentTitle: "Mapa de lugares emblemáticos de Google Maps Miniatures",
+      appTitle: "Mapa de lugares emblemáticos",
+      sidebarLabel: "Filtros y lista de lugares",
+      mapLabel: "Mapa",
+      statsLabel: "Estadísticas del mapa",
+      controlsLabel: "Filtros",
+      legendLabel: "Leyenda de iconos",
+      listLabel: "Lugares emblemáticos",
+      noteLabel: "Nota del mapa",
+      fitVisible: "Mostrar resultados actuales",
+      statLandmarks: "Lugares",
+      statCities: "Ciudades",
+      statCountries: "Países/regiones",
+      language: "Idioma",
+      search: "Buscar",
+      searchPlaceholder: "Ciudad, país o lugar",
+      continent: "Continente",
+      country: "País/región",
+      category: "Tipo de icono",
+      reset: "Restablecer",
+      list: "Lista",
+      allContinents: "Todos los continentes",
+      allCountries: "Todos los países/regiones",
+      allCategories: "Todos los tipos",
+      noteTitle: "Nota",
+      noteBody:
+        "El mapa base se renderiza en tiempo real con la API oficial de Google Maps. Los puntos de la lista usan coordenadas a nivel de ciudad, y cada ventana muestra imagen, categoría y una breve descripción.",
+      apiKeyLabel: "Clave de API de Google Maps",
+      apiKeyButton: "Cargar mapa oficial",
+      apiLocalOnly: "La clave solo se guarda en este navegador.",
+      apiEnterKey: "Introduce una clave para cargar el mapa oficial de Google.",
+      apiMissingKey: "Introduce una clave de API de Google Maps.",
+      apiLoading: "Cargando el mapa oficial de Google...",
+      apiLoadFailure: "Google Maps no pudo cargarse. Revisa la clave, Maps JavaScript API y las restricciones de referencia.",
+      apiInvalidKey: "La clave de Google Maps no es válida o Maps JavaScript API no está habilitada.",
+      apiLoadMapFirst: "Carga primero el mapa oficial de Google.",
+      mediaSource: "Wikipedia / Wikimedia",
+      openGoogleMaps: "Abrir en Google Maps",
+      continents: {
+        "North America": "Norteamérica",
+        Europe: "Europa",
+        Asia: "Asia",
+        "South America": "Sudamérica",
+        Africa: "África",
+        Oceania: "Oceanía",
+      },
+      categories: {
+        museum: "Museos/galerías",
+        faith: "Edificios religiosos",
+        palace: "Palacios/castillos",
+        tower: "Torres/horizonte",
+        monument: "Monumentos/plazas",
+        civic: "Edificios públicos",
+        culture: "Teatro/cultura",
+        science: "Ciencia/educación",
+        sports: "Recintos deportivos",
+        landmark: "Otros lugares",
+      },
+      place: (city, country) => `${city}, ${country}`,
+      descriptions: {
+        museum: (name, place) => `${name} es un museo o galería emblemática en ${place}, ideal para explorar arte, historia, ciencia o cultura local.`,
+        faith: (name, place) => `${name} es un edificio religioso emblemático en ${place}, reconocido por sus espacios de culto, detalles arquitectónicos e historia urbana.`,
+        palace: (name, place) => `${name} es un palacio o castillo emblemático en ${place}, a menudo vinculado con historia real, política o defensiva.`,
+        tower: (name, place) => `${name} es una torre o referencia del horizonte en ${place}, útil para contemplar la ciudad y orientarse.`,
+        monument: (name, place) => `${name} es un monumento emblemático en ${place}, asociado con memoria pública, historia o personajes destacados.`,
+        civic: (name, place) => `${name} es un edificio público emblemático en ${place}, relacionado con gobierno, servicios públicos o identidad nacional.`,
+        culture: (name, place) => `${name} es un espacio cultural o escénico en ${place}, conectado con teatro, música o eventos urbanos.`,
+        science: (name, place) => `${name} es un lugar de ciencia o educación en ${place}, adecuado para temas de naturaleza, tecnología, industria o espacio.`,
+        sports: (name, place) => `${name} es un recinto deportivo emblemático en ${place}, asociado con grandes eventos y cultura deportiva local.`,
+        landmark: (name, place) => `${name} es un lugar emblemático de ${place}, útil para marcar visitas y planificar rutas.`,
+      },
+    },
+  };
+
   const CATEGORY_DEFINITIONS = {
     museum: {
       label: "博物馆/美术馆",
@@ -296,10 +657,32 @@
   const DEFAULT_ZOOM = 2;
 
   const elements = {
+    sidebar: document.getElementById("sidebar"),
+    mapPane: document.getElementById("mapPane"),
     map: document.getElementById("map"),
+    appTitle: document.getElementById("appTitle"),
+    fitVisibleText: document.getElementById("fitVisibleText"),
+    statsSection: document.getElementById("statsSection"),
+    controlsSection: document.getElementById("controlsSection"),
+    visibleCountLabel: document.getElementById("visibleCountLabel"),
+    cityCountLabel: document.getElementById("cityCountLabel"),
+    countryCountLabel: document.getElementById("countryCountLabel"),
+    languageLabel: document.getElementById("languageLabel"),
+    languageSelect: document.getElementById("languageSelect"),
+    searchLabel: document.getElementById("searchLabel"),
+    continentLabel: document.getElementById("continentLabel"),
+    countryLabel: document.getElementById("countryLabel"),
+    categoryLabel: document.getElementById("categoryLabel"),
+    resetFiltersText: document.getElementById("resetFiltersText"),
+    toggleListText: document.getElementById("toggleListText"),
+    mapNote: document.getElementById("mapNote"),
+    mapNoteTitle: document.getElementById("mapNoteTitle"),
+    mapNoteBody: document.getElementById("mapNoteBody"),
     apiKeyPanel: document.getElementById("apiKeyPanel"),
     apiKeyForm: document.getElementById("apiKeyForm"),
+    apiKeyLabel: document.getElementById("apiKeyLabel"),
     apiKeyInput: document.getElementById("apiKeyInput"),
+    apiKeyButtonText: document.getElementById("apiKeyButtonText"),
     apiKeyStatus: document.getElementById("apiKeyStatus"),
     searchInput: document.getElementById("searchInput"),
     continentFilter: document.getElementById("continentFilter"),
@@ -315,6 +698,9 @@
     countryCount: document.getElementById("countryCount"),
   };
 
+  let currentLanguage = getInitialLanguage();
+  let apiKeyStatus = { key: "apiLocalOnly", isError: false };
+  const regionNamesCache = new Map();
   const landmarks = addCityOffsets(parseLandmarks(window.LANDMARK_SOURCE || ""));
   const markersById = new Map();
   let visibleLandmarks = landmarks;
@@ -328,15 +714,10 @@
   initialize();
 
   function initialize() {
-    buildLegend();
-    buildSelect(elements.continentFilter, "全部洲", unique(landmarks.map((item) => item.continent)));
-    buildSelect(elements.countryFilter, "全部国家/地区", unique(landmarks.map((item) => item.country)));
-    buildSelect(
-      elements.categoryFilter,
-      "全部图标类型",
-      categoryKeys.map((key) => [key, CATEGORY_DEFINITIONS[key].label]),
-    );
+    buildLanguageSelect();
+    applyLanguage();
 
+    elements.languageSelect.addEventListener("change", handleLanguageChange);
     elements.searchInput.addEventListener("input", render);
     elements.continentFilter.addEventListener("change", render);
     elements.countryFilter.addEventListener("change", render);
@@ -350,7 +731,7 @@
       event.preventDefault();
       const key = elements.apiKeyInput.value.trim();
       if (!key) {
-        showApiKeyPanel("请输入 Google Maps API key。", true);
+        showApiKeyPanel("apiMissingKey", true);
         return;
       }
       localStorage.setItem(GOOGLE_MAPS_KEY_STORAGE, key);
@@ -365,13 +746,170 @@
     initializeGoogleMap(getStoredGoogleMapsKey());
   }
 
-  async function initializeGoogleMap(apiKey) {
-    if (!apiKey) {
-      showApiKeyPanel("输入 key 后加载 Google 官方地图。", false);
+  function handleLanguageChange() {
+    currentLanguage = normalizeLanguage(elements.languageSelect.value);
+    localStorage.setItem(LANGUAGE_STORAGE, currentLanguage);
+
+    if (map || window.google?.maps?.importLibrary) {
+      window.location.reload();
       return;
     }
 
-    showApiKeyPanel("正在加载 Google 官方地图...", false);
+    applyLanguage();
+    render();
+  }
+
+  function applyLanguage() {
+    const selected = {
+      continent: elements.continentFilter.value,
+      country: elements.countryFilter.value,
+      category: elements.categoryFilter.value,
+    };
+
+    document.documentElement.lang = SUPPORTED_LANGUAGES[currentLanguage].htmlLang;
+    document.title = t("documentTitle");
+    elements.sidebar.setAttribute("aria-label", t("sidebarLabel"));
+    elements.mapPane.setAttribute("aria-label", t("mapLabel"));
+    elements.statsSection.setAttribute("aria-label", t("statsLabel"));
+    elements.controlsSection.setAttribute("aria-label", t("controlsLabel"));
+    elements.legend.setAttribute("aria-label", t("legendLabel"));
+    elements.landmarkList.setAttribute("aria-label", t("listLabel"));
+    elements.mapNote.setAttribute("aria-label", t("noteLabel"));
+    elements.fitVisible.title = t("fitVisible");
+    elements.appTitle.textContent = t("appTitle");
+    elements.fitVisibleText.textContent = t("fitVisible");
+    elements.visibleCountLabel.textContent = t("statLandmarks");
+    elements.cityCountLabel.textContent = t("statCities");
+    elements.countryCountLabel.textContent = t("statCountries");
+    elements.languageLabel.textContent = t("language");
+    elements.searchLabel.textContent = t("search");
+    elements.searchInput.placeholder = t("searchPlaceholder");
+    elements.continentLabel.textContent = t("continent");
+    elements.countryLabel.textContent = t("country");
+    elements.categoryLabel.textContent = t("category");
+    elements.resetFiltersText.textContent = t("reset");
+    elements.toggleListText.textContent = t("list");
+    elements.mapNoteTitle.textContent = t("noteTitle");
+    elements.mapNoteBody.textContent = t("noteBody");
+    elements.apiKeyLabel.textContent = t("apiKeyLabel");
+    elements.apiKeyButtonText.textContent = t("apiKeyButton");
+
+    buildSelect(
+      elements.continentFilter,
+      t("allContinents"),
+      unique(landmarks.map((item) => item.continent)).map((continent) => [
+        continent,
+        continentLabelFor(continent),
+      ]),
+    );
+    buildSelect(
+      elements.countryFilter,
+      t("allCountries"),
+      unique(landmarks.map((item) => item.country)).map((country) => [country, countryLabelFor(country)]),
+    );
+    buildSelect(
+      elements.categoryFilter,
+      t("allCategories"),
+      categoryKeys.map((key) => [key, categoryLabelFor(key)]),
+    );
+    elements.continentFilter.value = selected.continent;
+    elements.countryFilter.value = selected.country;
+    elements.categoryFilter.value = selected.category;
+
+    buildLegend();
+    updateApiKeyStatus();
+  }
+
+  function buildLanguageSelect() {
+    elements.languageSelect.replaceChildren(
+      ...Object.entries(SUPPORTED_LANGUAGES).map(([value, config]) => new Option(config.label, value)),
+    );
+    elements.languageSelect.value = currentLanguage;
+  }
+
+  function getInitialLanguage() {
+    let storedLanguage = "";
+
+    try {
+      storedLanguage = localStorage.getItem(LANGUAGE_STORAGE) || "";
+    } catch (error) {
+      storedLanguage = "";
+    }
+
+    const browserLanguage = navigator.languages?.[0] || navigator.language || DEFAULT_LANGUAGE;
+    return normalizeLanguage(storedLanguage || browserLanguage);
+  }
+
+  function normalizeLanguage(value) {
+    const normalized = String(value || "").toLowerCase();
+
+    if (normalized.startsWith("zh")) return "zh";
+    if (normalized.startsWith("ja")) return "ja";
+    if (normalized.startsWith("es")) return "es";
+    if (normalized.startsWith("en")) return "en";
+    return DEFAULT_LANGUAGE;
+  }
+
+  function currentTranslations() {
+    return I18N[currentLanguage] || I18N[DEFAULT_LANGUAGE];
+  }
+
+  function t(key) {
+    return currentTranslations()[key] || I18N[DEFAULT_LANGUAGE][key] || key;
+  }
+
+  function continentLabelFor(continent, language = currentLanguage) {
+    return I18N[language]?.continents?.[continent] || I18N[DEFAULT_LANGUAGE].continents[continent] || continent;
+  }
+
+  function categoryLabelFor(category, language = currentLanguage) {
+    return I18N[language]?.categories?.[category] || I18N[DEFAULT_LANGUAGE].categories[category] || category;
+  }
+
+  function countryLabelFor(country, language = currentLanguage) {
+    const code = COUNTRY_CODES[country];
+
+    if (!code) {
+      return country;
+    }
+
+    try {
+      const locale = SUPPORTED_LANGUAGES[language]?.locale || SUPPORTED_LANGUAGES[DEFAULT_LANGUAGE].locale;
+      const names = regionNamesFor(locale);
+      return names.of(code) || country;
+    } catch (error) {
+      return country;
+    }
+  }
+
+  function regionNamesFor(locale) {
+    if (!regionNamesCache.has(locale)) {
+      regionNamesCache.set(locale, new Intl.DisplayNames([locale], { type: "region" }));
+    }
+    return regionNamesCache.get(locale);
+  }
+
+  function placeLabelFor(landmark, language = currentLanguage) {
+    const place = I18N[language]?.place || I18N[DEFAULT_LANGUAGE].place;
+    return place(landmark.city, countryLabelFor(landmark.country, language));
+  }
+
+  function createSearchText(name, city, country, continent, category) {
+    const localizedTerms = Object.keys(SUPPORTED_LANGUAGES).flatMap((language) => [
+      continentLabelFor(continent, language),
+      countryLabelFor(country, language),
+      categoryLabelFor(category, language),
+    ]);
+    return [name, city, country, continent, category, ...localizedTerms].join(" ").toLowerCase();
+  }
+
+  async function initializeGoogleMap(apiKey) {
+    if (!apiKey) {
+      showApiKeyPanel("apiEnterKey", false);
+      return;
+    }
+
+    showApiKeyPanel("apiLoading", false);
 
     try {
       await loadGoogleMapsApi(apiKey);
@@ -396,7 +934,7 @@
       fitVisibleMarkers();
     } catch (error) {
       console.error(error);
-      showApiKeyPanel("Google Maps 加载失败，请检查 key、Maps JavaScript API 和来源限制。", true);
+      showApiKeyPanel("apiLoadFailure", true);
     }
   }
 
@@ -416,7 +954,7 @@
         loading: "async",
         callback: callbackName,
         v: "weekly",
-        language: "zh-CN",
+        language: SUPPORTED_LANGUAGES[currentLanguage].mapsLanguage,
         region: "US",
         libraries: "marker",
       });
@@ -430,7 +968,7 @@
         resolve();
       };
       window.gm_authFailure = () => {
-        showApiKeyPanel("Google Maps key 无效，或 Maps JavaScript API 没有启用。", true);
+        showApiKeyPanel("apiInvalidKey", true);
       };
       document.head.appendChild(script);
     });
@@ -455,15 +993,20 @@
     return (localStorage.getItem(GOOGLE_MAPS_KEY_STORAGE) || "").trim();
   }
 
-  function showApiKeyPanel(message, isError) {
+  function showApiKeyPanel(messageKey, isError) {
+    apiKeyStatus = { key: messageKey, isError: Boolean(isError) };
     elements.apiKeyPanel.classList.remove("hidden");
-    elements.apiKeyStatus.textContent = message;
-    elements.apiKeyStatus.classList.toggle("error", Boolean(isError));
+    updateApiKeyStatus();
   }
 
   function hideApiKeyPanel() {
     elements.apiKeyPanel.classList.add("hidden");
     elements.apiKeyStatus.classList.remove("error");
+  }
+
+  function updateApiKeyStatus() {
+    elements.apiKeyStatus.textContent = t(apiKeyStatus.key);
+    elements.apiKeyStatus.classList.toggle("error", apiKeyStatus.isError);
   }
 
   function parseLandmarks(source) {
@@ -518,9 +1061,8 @@
           media: landmarkMedia[id],
           lat: coordinates.lat,
           lng: coordinates.lng,
-          searchText: `${line} ${currentCity} ${currentCountry} ${currentContinent}`.toLowerCase(),
+          searchText: createSearchText(line, currentCity, currentCountry, currentContinent, category),
         };
-        record.description = createDescription(record);
         records.push(record);
       });
 
@@ -537,24 +1079,13 @@
   }
 
   function createDescription(landmark) {
-    if (landmark.media?.description) {
+    if (currentLanguage === "en" && landmark.media?.description) {
       return landmark.media.description;
     }
 
-    const cityCountry = `${landmark.city}，${landmark.country}`;
-    const descriptions = {
-      museum: `${landmark.name} 是位于 ${cityCountry} 的博物馆或美术馆类地标，适合了解当地艺术、历史、科学或文化收藏。`,
-      faith: `${landmark.name} 是位于 ${cityCountry} 的宗教建筑地标，常以礼仪空间、建筑细节和城市历史吸引游客。`,
-      palace: `${landmark.name} 是位于 ${cityCountry} 的宫殿或城堡类景点，通常承载当地王室、政治或防御历史。`,
-      tower: `${landmark.name} 是位于 ${cityCountry} 的塔楼或天际线地标，常用于俯瞰城市和辨认城市轮廓。`,
-      monument: `${landmark.name} 是位于 ${cityCountry} 的纪念性地标，记录城市历史、重要人物或公共记忆。`,
-      civic: `${landmark.name} 是位于 ${cityCountry} 的公共建筑地标，体现城市治理、公共服务或国家象征。`,
-      culture: `${landmark.name} 是位于 ${cityCountry} 的文化演出或艺术空间，常承载剧院、音乐和城市活动。`,
-      science: `${landmark.name} 是位于 ${cityCountry} 的科学或教育类景点，适合探索自然、科技、工业或航天主题。`,
-      sports: `${landmark.name} 是位于 ${cityCountry} 的体育场馆地标，常与大型赛事和城市体育文化相关。`,
-      landmark: `${landmark.name} 是位于 ${cityCountry} 的城市地标，适合加入地图清单进行打卡和路线规划。`,
-    };
-    return descriptions[landmark.category] || descriptions.landmark;
+    const descriptions = currentTranslations().descriptions;
+    const template = descriptions[landmark.category] || descriptions.landmark;
+    return template(landmark.name, placeLabelFor(landmark));
   }
 
   function addCityOffsets(records) {
@@ -633,7 +1164,6 @@
     const fragment = document.createDocumentFragment();
 
     visibleLandmarks.forEach((landmark) => {
-      const category = CATEGORY_DEFINITIONS[landmark.category];
       const row = document.createElement("button");
       row.type = "button";
       row.className = "landmark-row";
@@ -641,7 +1171,7 @@
         ${categoryIconMarkup(landmark.category, "row-icon")}
         <span>
           <span class="row-title">${escapeHtml(landmark.name)}</span>
-          <span class="row-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)} · ${escapeHtml(category.label)}</span>
+          <span class="row-meta">${escapeHtml(landmark.city)} · ${escapeHtml(countryLabelFor(landmark.country))} · ${escapeHtml(categoryLabelFor(landmark.category))}</span>
         </span>
       `;
       row.addEventListener("click", () => focusLandmark(landmark.id));
@@ -660,12 +1190,11 @@
   function buildLegend() {
     const fragment = document.createDocumentFragment();
     categoryKeys.forEach((key) => {
-      const category = CATEGORY_DEFINITIONS[key];
       const chip = document.createElement("span");
       chip.className = "legend-chip";
       chip.innerHTML = `
         ${categoryIconMarkup(key, "legend-dot")}
-        ${escapeHtml(category.label)}
+        ${escapeHtml(categoryLabelFor(key))}
       `;
       fragment.appendChild(chip);
     });
@@ -697,7 +1226,6 @@
   }
 
   function createPopup(landmark) {
-    const category = CATEGORY_DEFINITIONS[landmark.category] || CATEGORY_DEFINITIONS.landmark;
     const mapsQuery = encodeURIComponent(`${landmark.name}, ${landmark.city}, ${landmark.country}`);
     const mediaFigure = landmark.media?.thumbnail
       ? `
@@ -705,7 +1233,7 @@
           <img src="${escapeHtml(landmark.media.thumbnail)}" alt="${escapeHtml(landmark.name)}" loading="lazy" />
           ${
             landmark.media.pageUrl
-              ? `<figcaption><a href="${escapeHtml(landmark.media.pageUrl)}" target="_blank" rel="noreferrer">Wikipedia / Wikimedia</a></figcaption>`
+              ? `<figcaption><a href="${escapeHtml(landmark.media.pageUrl)}" target="_blank" rel="noreferrer">${escapeHtml(t("mediaSource"))}</a></figcaption>`
               : ""
           }
         </figure>
@@ -717,15 +1245,15 @@
           ${categoryIconMarkup(landmark.category, "popup-icon")}
           <div>
             <h2 class="popup-title">${escapeHtml(landmark.name)}</h2>
-            <p class="popup-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)}</p>
+            <p class="popup-meta">${escapeHtml(landmark.city)} · ${escapeHtml(countryLabelFor(landmark.country))}</p>
           </div>
         </div>
         ${mediaFigure}
-        <p class="popup-meta">${escapeHtml(landmark.continent)} · ${escapeHtml(category.label)}</p>
-        <p class="popup-description">${escapeHtml(landmark.description)}</p>
+        <p class="popup-meta">${escapeHtml(continentLabelFor(landmark.continent))} · ${escapeHtml(categoryLabelFor(landmark.category))}</p>
+        <p class="popup-description">${escapeHtml(createDescription(landmark))}</p>
         <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${mapsQuery}" target="_blank" rel="noreferrer">
           <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
-          Google Maps
+          ${escapeHtml(t("openGoogleMaps"))}
         </a>
       </article>
     `;
@@ -766,7 +1294,7 @@
 
   function focusLandmark(id) {
     if (!map) {
-      showApiKeyPanel("先加载 Google Maps 官方地图。", false);
+      showApiKeyPanel("apiLoadMapFirst", false);
       return;
     }
     const entry = markersById.get(id);
@@ -780,7 +1308,7 @@
 
   function fitVisibleMarkers() {
     if (!map || !mapsApi?.LatLngBounds) {
-      showApiKeyPanel("先加载 Google Maps 官方地图。", false);
+      showApiKeyPanel("apiLoadMapFirst", false);
       return;
     }
 

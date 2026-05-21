@@ -12,51 +12,56 @@
   </head>
   <body>
     <main class="app-shell">
-      <aside class="sidebar" aria-label="Landmark filters and list">
+      <aside class="sidebar" id="sidebar" aria-label="Landmark filters and list">
         <header class="brand">
           <div>
             <p class="eyebrow">Google Maps Miniatures</p>
-            <h1>Landmark Map</h1>
+            <h1 id="appTitle">Landmark Map</h1>
           </div>
           <button id="fitVisible" class="icon-button" type="button" title="显示当前结果">
             <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
-            <span class="sr-only">显示当前结果</span>
+            <span id="fitVisibleText" class="sr-only">显示当前结果</span>
           </button>
         </header>
 
-        <section class="stats" aria-label="Map statistics">
+        <section class="stats" id="statsSection" aria-label="Map statistics">
           <div>
             <strong id="visibleCount">0</strong>
-            <span>地标</span>
+            <span id="visibleCountLabel">地标</span>
           </div>
           <div>
             <strong id="cityCount">0</strong>
-            <span>城市</span>
+            <span id="cityCountLabel">城市</span>
           </div>
           <div>
             <strong id="countryCount">0</strong>
-            <span>国家/地区</span>
+            <span id="countryCountLabel">国家/地区</span>
           </div>
         </section>
 
-        <section class="controls" aria-label="Filters">
+        <section class="controls" id="controlsSection" aria-label="Filters">
+          <label class="field">
+            <span id="languageLabel">语言</span>
+            <select id="languageSelect"></select>
+          </label>
+
           <label class="field search-field">
-            <span>搜索</span>
+            <span id="searchLabel">搜索</span>
             <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
             <input id="searchInput" type="search" placeholder="城市、国家、地标名称" />
           </label>
 
           <div class="filter-grid">
             <label class="field">
-              <span>洲</span>
+              <span id="continentLabel">洲</span>
               <select id="continentFilter"></select>
             </label>
             <label class="field">
-              <span>国家/地区</span>
+              <span id="countryLabel">国家/地区</span>
               <select id="countryFilter"></select>
             </label>
             <label class="field wide">
-              <span>图标类型</span>
+              <span id="categoryLabel">图标类型</span>
               <select id="categoryFilter"></select>
             </label>
           </div>
@@ -64,29 +69,34 @@
           <div class="button-row">
             <button id="resetFilters" class="secondary-button" type="button">
               <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-              重置
+              <span id="resetFiltersText">重置</span>
             </button>
             <button id="toggleList" class="secondary-button" type="button">
               <i class="fa-solid fa-list" aria-hidden="true"></i>
-              列表
+              <span id="toggleListText">列表</span>
             </button>
           </div>
+        </section>
+
+        <section class="map-note" id="mapNote" aria-label="Map note">
+          <h2 id="mapNoteTitle">说明</h2>
+          <p id="mapNoteBody"></p>
         </section>
 
         <section class="legend" id="legend" aria-label="Icon legend"></section>
         <section class="landmark-list" id="landmarkList" aria-label="Landmarks"></section>
       </aside>
 
-      <section class="map-pane" aria-label="Map">
+      <section class="map-pane" id="mapPane" aria-label="Map">
         <div id="apiKeyPanel" class="api-key-panel">
           <form id="apiKeyForm" class="api-key-card">
             <label class="field">
-              <span>Google Maps API key</span>
+              <span id="apiKeyLabel">Google Maps API key</span>
               <input id="apiKeyInput" type="password" autocomplete="off" placeholder="AIza..." />
             </label>
             <button class="primary-button" type="submit">
               <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
-              加载官方地图
+              <span id="apiKeyButtonText">加载官方地图</span>
             </button>
             <p id="apiKeyStatus">key 只保存在本机浏览器。</p>
           </form>
