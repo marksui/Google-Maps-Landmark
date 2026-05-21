@@ -95,50 +95,82 @@ function matches(text, keywords) {
 
 function miniatureSvg(type, seed) {
   const variant = seed % 5;
-  const roof = 8 + (seed % 6);
-  const height = 34 + (seed % 8);
-  const stripe = 16 + (seed % 12);
-  const shape = shapeFor(type, variant, roof, height, stripe);
+  const height = 28 + (seed % 10);
+  const inset = 8 + (seed % 7);
+  const shape = shapeFor(type, variant, height, inset);
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="82" viewBox="0 0 128 82">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="82" viewBox="0 0 128 82" fill="none">
   <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="2" stdDeviation="1.8" flood-color="#202124" flood-opacity=".38"/>
+    <filter id="cast" x="-20%" y="-22%" width="145%" height="160%">
+      <feDropShadow dx="0" dy="2.8" stdDeviation="1.35" flood-color="#202124" flood-opacity=".58"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="1.05" flood-color="#ffffff" flood-opacity=".86"/>
     </filter>
   </defs>
-  <g filter="url(#shadow)" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="64" cy="68.5" rx="43" ry="5.2" fill="#202124" opacity=".18"/>
+  <g filter="url(#cast)" stroke="#fff" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round">
     ${shape}
   </g>
-  <g stroke="#5f6368" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".72">
+  <g stroke="#5f6368" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round" opacity=".78">
     ${detailFor(type, variant)}
   </g>
 </svg>
 `;
 }
 
-function shapeFor(type, variant, roof, height, stripe) {
-  const baseY = 62;
-  const gray = "#8a8d91";
-  const light = "#b8bbbf";
-  const dark = "#6f7378";
+function shapeFor(type, variant, height, inset) {
+  const y = 64;
+  const top = y - height;
+  const left = 26 + (variant % 2) * 2;
+  const right = 94 - (variant % 2) * 2;
+  const gray = "#8f9296";
+  const light = "#c4c7cb";
+  const mid = "#a7aaae";
+  const dark = "#70757a";
   const shapes = {
-    museum: `<path fill="${gray}" d="M18 31 L64 12 L110 31 Z"/><path fill="${light}" d="M24 31 H104 V62 H24 Z"/><path fill="${dark}" d="M32 36 H43 V62 H32 Z M58 36 H70 V62 H58 Z M85 36 H96 V62 H85 Z"/>`,
-    faith: `<path fill="${gray}" d="M26 62 V35 Q64 ${roof} 102 35 V62 Z"/><path fill="${light}" d="M48 62 V32 H80 V62 Z"/><path fill="${dark}" d="M61 19 H67 V32 H61 Z M57 23 H71 V27 H57 Z"/>`,
-    palace: `<path fill="${gray}" d="M20 62 V28 H34 V38 H49 V28 H64 V38 H79 V28 H94 V38 H108 V62 Z"/><path fill="${light}" d="M31 42 H97 V62 H31 Z"/>`,
-    tower: `<path fill="${gray}" d="M51 62 L58 18 H70 L77 62 Z"/><path fill="${light}" d="M43 62 H85 V70 H43 Z"/><path fill="${dark}" d="M49 30 H79 V38 H49 Z"/>`,
-    monument: `<path fill="${gray}" d="M55 62 L61 16 H67 L73 62 Z"/><path fill="${light}" d="M37 62 H91 V70 H37 Z"/><path fill="${dark}" d="M47 53 H81 V62 H47 Z"/>`,
-    civic: `<path fill="${gray}" d="M18 32 H110 V62 H18 Z"/><path fill="${light}" d="M25 22 H103 V32 H25 Z"/><path fill="${dark}" d="M30 38 H41 V62 H30 Z M50 38 H61 V62 H50 Z M69 38 H80 V62 H69 Z M88 38 H99 V62 H88 Z"/>`,
-    theater: `<path fill="${gray}" d="M19 30 Q64 18 109 30 V62 H19 Z"/><path fill="${light}" d="M31 38 H97 V56 H31 Z"/><path fill="${dark}" d="M40 44 H88"/>`,
-    stadium: `<ellipse fill="${gray}" cx="64" cy="47" rx="47" ry="22"/><ellipse fill="${light}" cx="64" cy="47" rx="31" ry="13"/><path fill="${dark}" d="M34 47 H94"/>`,
-    generic: `<path fill="${gray}" d="M25 62 V${baseY - height} H96 V62 Z"/><path fill="${light}" d="M36 ${baseY - height + 7} H108 V62 H36 Z"/><path fill="${dark}" d="M48 ${stripe} H95"/>`,
+    museum: `${block(left, top, 72, 30, inset, gray, light, mid)}
+      <path fill="${dark}" d="M21 ${top} L64 ${top - 18} L107 ${top} Z"/>
+      <path fill="${light}" d="M33 ${top + 8} H45 V${y} H33 Z M58 ${top + 8} H70 V${y} H58 Z M83 ${top + 8} H95 V${y} H83 Z"/>`,
+    faith: `${block(37, top + 4, 54, 30, inset, gray, light, mid)}
+      <path fill="${dark}" d="M47 ${top + 6} Q64 ${top - 20} 81 ${top + 6} Z"/>
+      <path fill="${light}" d="M59 ${top - 19} H69 V${top + 5} H59 Z M55 ${top - 12} H73 V${top - 7} H55 Z"/>`,
+    palace: `${block(22, top + 7, 78, 29, inset, gray, light, mid)}
+      <path fill="${dark}" d="M22 ${top + 7} V${top - 4} H36 V${top + 5} H50 V${top - 5} H64 V${top + 5} H78 V${top - 4} H92 V${top + 7} Z"/>
+      <path fill="${light}" d="M32 ${top + 18} H92 V${y} H32 Z"/>`,
+    tower: `<path fill="${gray}" d="M53 ${y} L59 ${top - 13} H71 L77 ${y} Z"/>
+      <path fill="${light}" d="M59 ${top - 13} H71 L76 ${y} H65 Z"/>
+      <path fill="${mid}" d="M45 ${y} H83 V${y + 8} H45 Z"/>
+      <path fill="${dark}" d="M49 ${top + 4} H81 V${top + 13} H49 Z"/>`,
+    monument: `<path fill="${gray}" d="M55 ${y} L61 ${top - 16} H67 L73 ${y} Z"/>
+      <path fill="${light}" d="M61 ${top - 16} H67 L73 ${y} H64 Z"/>
+      <path fill="${mid}" d="M39 ${y} H89 V${y + 8} H39 Z"/>
+      <path fill="${dark}" d="M48 ${y - 10} H80 V${y} H48 Z"/>`,
+    civic: `${block(21, top + 5, 82, 31, inset, gray, light, mid)}
+      <path fill="${dark}" d="M24 ${top - 5} H104 V${top + 6} H24 Z"/>
+      <path fill="${light}" d="M31 ${top + 14} H42 V${y} H31 Z M51 ${top + 14} H62 V${y} H51 Z M70 ${top + 14} H81 V${y} H70 Z M89 ${top + 14} H100 V${y} H89 Z"/>`,
+    theater: `<path fill="${gray}" d="M20 ${top + 10} Q64 ${top - 4} 108 ${top + 10} V${y} H20 Z"/>
+      <path fill="${light}" d="M32 ${top + 18} H96 V${y - 8} H32 Z"/>
+      <path fill="${mid}" d="M96 ${top + 18} L108 ${top + 10} V${y} H96 Z"/>`,
+    stadium: `<ellipse fill="${gray}" cx="64" cy="48" rx="48" ry="23"/>
+      <ellipse fill="${light}" cx="64" cy="48" rx="33" ry="14"/>
+      <path fill="${mid}" d="M24 50 Q64 68 104 50 V58 Q64 76 24 58 Z"/>`,
+    generic: block(left, top, 72, 34, inset, gray, light, mid),
   };
   return shapes[type] || shapes.generic;
 }
 
 function detailFor(type, variant) {
-  if (type === "stadium") return `<path d="M36 42 Q64 33 92 42"/><path d="M36 52 Q64 61 92 52"/>`;
-  if (type === "tower" || type === "monument") return `<path d="M56 44 H72"/><path d="M54 53 H74"/>`;
-  return `<path d="M31 40 H96"/><path d="M31 50 H96"/><path d="M48 34 V61"/><path d="M80 34 V61"/>`;
+  if (type === "stadium") return `<path d="M34 43 Q64 34 94 43"/><path d="M35 53 Q64 63 93 53"/>`;
+  if (type === "tower" || type === "monument") return `<path d="M56 42 H72"/><path d="M55 52 H73"/><path d="M60 28 H68"/>`;
+  if (type === "faith") return `<path d="M43 42 H84"/><path d="M49 52 H90"/><path d="M64 31 V61"/>`;
+  return `<path d="M31 39 H97"/><path d="M31 49 H99"/><path d="M47 33 V62"/><path d="M80 34 V62"/>`;
+}
+
+function block(x, y, width, height, inset, front, top, side) {
+  const right = x + width;
+  const bottom = y + height;
+  return `<path fill="${front}" d="M${x} ${y} H${right} V${bottom} H${x} Z"/>
+    <path fill="${top}" d="M${x} ${y} L${x + inset} ${y - inset} H${right + inset} L${right} ${y} Z"/>
+    <path fill="${side}" d="M${right} ${y} L${right + inset} ${y - inset} V${bottom - inset} L${right} ${bottom} Z"/>`;
 }
 
 function hashString(value) {
