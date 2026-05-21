@@ -4,6 +4,9 @@
   const DEFAULT_MAP_PROVIDER = "openmap";
   const MAP_PROVIDER_STORAGE = "landmarkMapProvider";
   const MAP_PROVIDERS = ["openmap", "google"];
+  const DEFAULT_VIEW_MODE = "landmark";
+  const VIEW_MODE_STORAGE = "landmarkMapViewMode";
+  const VIEW_MODES = ["landmark", "continent", "country", "city"];
   const DEFAULT_THEME = "harbor";
   const THEME_STORAGE = "landmarkMapTheme";
   const THEMES = [
@@ -98,6 +101,11 @@
       statCountries: "国家/地区",
       language: "语言",
       mapProvider: "地图来源",
+      viewMode: "视图",
+      viewLandmark: "地标",
+      viewContinent: "大洲",
+      viewCountry: "国家/地区",
+      viewCity: "城市",
       theme: "主题",
       themeGraphite: "石墨",
       themeHarbor: "海港",
@@ -136,6 +144,8 @@
       closePopup: "关闭",
       clusterSummary: (count, city) => `${city} · ${count} 个地标`,
       zoomPrompt: "点击城市或继续放大会展开单个地标 miniature。",
+      groupZoomPrompt: "点击聚焦这个分组。",
+      groupSummary: (count, label) => `${label} · ${count} 个地标`,
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "在 Google Maps 打开",
       continents: {
@@ -190,6 +200,11 @@
       statCountries: "Countries/regions",
       language: "Language",
       mapProvider: "Map source",
+      viewMode: "View",
+      viewLandmark: "Landmarks",
+      viewContinent: "Continents",
+      viewCountry: "Countries/regions",
+      viewCity: "Cities",
       theme: "Theme",
       themeGraphite: "Graphite",
       themeHarbor: "Harbor",
@@ -228,6 +243,8 @@
       closePopup: "Close",
       clusterSummary: (count, city) => `${city} · ${count} landmarks`,
       zoomPrompt: "Click the city or keep zooming to expand individual landmark miniatures.",
+      groupZoomPrompt: "Click to focus this group.",
+      groupSummary: (count, label) => `${label} · ${count} landmarks`,
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Open in Google Maps",
       continents: {
@@ -282,6 +299,11 @@
       statCountries: "国/地域",
       language: "言語",
       mapProvider: "地図ソース",
+      viewMode: "表示",
+      viewLandmark: "ランドマーク",
+      viewContinent: "大陸",
+      viewCountry: "国/地域",
+      viewCity: "都市",
       theme: "テーマ",
       themeGraphite: "グラファイト",
       themeHarbor: "ハーバー",
@@ -320,6 +342,8 @@
       closePopup: "閉じる",
       clusterSummary: (count, city) => `${city} · ${count} 件のランドマーク`,
       zoomPrompt: "都市をクリックするか、さらに拡大すると個別のランドマーク miniature が表示されます。",
+      groupZoomPrompt: "クリックするとこのグループに移動します。",
+      groupSummary: (count, label) => `${label} · ${count} 件のランドマーク`,
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Google Maps で開く",
       continents: {
@@ -374,6 +398,11 @@
       statCountries: "Países/regiones",
       language: "Idioma",
       mapProvider: "Fuente del mapa",
+      viewMode: "Vista",
+      viewLandmark: "Lugares",
+      viewContinent: "Continentes",
+      viewCountry: "Países/regiones",
+      viewCity: "Ciudades",
       theme: "Tema",
       themeGraphite: "Grafito",
       themeHarbor: "Puerto",
@@ -412,6 +441,8 @@
       closePopup: "Cerrar",
       clusterSummary: (count, city) => `${city} · ${count} lugares`,
       zoomPrompt: "Haz clic en la ciudad o sigue acercándote para desplegar miniaturas individuales.",
+      groupZoomPrompt: "Haz clic para enfocar este grupo.",
+      groupSummary: (count, label) => `${label} · ${count} lugares`,
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Abrir en Google Maps",
       continents: {
@@ -769,6 +800,8 @@
     languageSelect: document.getElementById("languageSelect"),
     mapProviderLabel: document.getElementById("mapProviderLabel"),
     mapProviderSelect: document.getElementById("mapProviderSelect"),
+    viewModeLabel: document.getElementById("viewModeLabel"),
+    viewModeSelect: document.getElementById("viewModeSelect"),
     themeLabel: document.getElementById("themeLabel"),
     themePicker: document.getElementById("themePicker"),
     searchLabel: document.getElementById("searchLabel"),
@@ -804,6 +837,7 @@
 
   let currentLanguage = getInitialLanguage();
   let currentProvider = getInitialProvider();
+  let currentViewMode = getInitialViewMode();
   let currentTheme = getInitialTheme();
   let apiKeyStatus = { key: "apiLocalOnly", isError: false };
   const regionNamesCache = new Map();
@@ -833,6 +867,7 @@
 
     elements.languageSelect.addEventListener("change", handleLanguageChange);
     elements.mapProviderSelect.addEventListener("change", handleProviderChange);
+    elements.viewModeSelect.addEventListener("change", handleViewModeChange);
     elements.themePicker.addEventListener("click", handleThemePickerClick);
     elements.themePicker.addEventListener("keydown", handleThemePickerKeydown);
     elements.searchInput.addEventListener("input", render);
@@ -888,6 +923,14 @@
     localStorage.setItem(MAP_PROVIDER_STORAGE, currentProvider);
     applyLanguage();
     initializeMapProvider();
+  }
+
+  function handleViewModeChange() {
+    currentViewMode = normalizeViewMode(elements.viewModeSelect.value);
+    localStorage.setItem(VIEW_MODE_STORAGE, currentViewMode);
+    closeActiveMapPopup();
+    render();
+    fitVisibleMarkers();
   }
 
   function handleThemePickerClick(event) {
@@ -953,6 +996,7 @@
     elements.countryCountLabel.textContent = t("statCountries");
     elements.languageLabel.textContent = t("language");
     elements.mapProviderLabel.textContent = t("mapProvider");
+    elements.viewModeLabel.textContent = t("viewMode");
     elements.themeLabel.textContent = t("theme");
     elements.themePicker.setAttribute("aria-label", t("theme"));
     elements.searchLabel.textContent = t("search");
@@ -967,6 +1011,7 @@
     elements.apiKeyLabel.textContent = t("apiKeyLabel");
     elements.apiKeyButtonText.textContent = t("apiKeyButton");
     buildProviderSelect();
+    buildViewModeSelect();
     buildThemePicker();
 
     buildSelect(
@@ -1008,6 +1053,16 @@
       new Option(t("providerGoogle"), "google"),
     );
     elements.mapProviderSelect.value = currentProvider;
+  }
+
+  function buildViewModeSelect() {
+    elements.viewModeSelect.replaceChildren(
+      new Option(t("viewLandmark"), "landmark"),
+      new Option(t("viewContinent"), "continent"),
+      new Option(t("viewCountry"), "country"),
+      new Option(t("viewCity"), "city"),
+    );
+    elements.viewModeSelect.value = currentViewMode;
   }
 
   function buildThemePicker() {
@@ -1056,6 +1111,22 @@
     const params = new URLSearchParams(window.location.search);
     const requestedProvider = (params.get("provider") || params.get("mapProvider") || "").trim();
     return MAP_PROVIDERS.includes(requestedProvider) ? requestedProvider : DEFAULT_MAP_PROVIDER;
+  }
+
+  function getInitialViewMode() {
+    let storedViewMode = "";
+
+    try {
+      storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE) || "";
+    } catch (error) {
+      storedViewMode = "";
+    }
+
+    return normalizeViewMode(storedViewMode);
+  }
+
+  function normalizeViewMode(viewMode) {
+    return VIEW_MODES.includes(viewMode) ? viewMode : DEFAULT_VIEW_MODE;
   }
 
   function getInitialTheme() {
@@ -1115,6 +1186,18 @@
   function closeMapHelp() {
     elements.mapHelpPopover.classList.remove("open");
     elements.mapHelp.setAttribute("aria-expanded", "false");
+  }
+
+  function closeActiveMapPopup() {
+    openMapPopupOpen = false;
+
+    if (map && typeof map.closePopup === "function") {
+      map.closePopup();
+    }
+
+    if (infoWindow && typeof infoWindow.close === "function") {
+      infoWindow.close();
+    }
   }
 
   function setListCollapsed(collapsed, shouldFocus = false) {
@@ -1631,11 +1714,19 @@
       return;
     }
 
-    elements.map.classList.toggle("labels-visible", (map.getZoom() || DEFAULT_ZOOM) >= 4);
+    elements.map.classList.toggle(
+      "labels-visible",
+      currentViewMode !== "landmark" || (map.getZoom() || DEFAULT_ZOOM) >= 4,
+    );
     openMapLayer.clearLayers();
     markersById.clear();
 
     if (!visibleLandmarks.length) {
+      return;
+    }
+
+    if (currentViewMode !== "landmark") {
+      renderOpenMapGroupMarkers(groupVisibleLandmarksByView(currentViewMode));
       return;
     }
 
@@ -1687,6 +1778,19 @@
     });
   }
 
+  function renderOpenMapGroupMarkers(groups) {
+    groups.forEach((group) => {
+      const marker = L.marker([group.lat, group.lng], {
+        title: tf("groupSummary", group.items.length, group.label),
+        riseOnHover: true,
+        icon: createOpenMapGroupIcon(group),
+      });
+      marker.addTo(openMapLayer);
+      bindOpenMapMarkerAction(marker, () => focusViewGroup(group));
+      markersById.set(`group-${group.mode}-${group.key}`, { marker, group });
+    });
+  }
+
   function bindOpenMapMarkerAction(marker, action) {
     let lastRun = 0;
     const run = () => {
@@ -1729,6 +1833,20 @@
       return;
     }
 
+    if (currentViewMode !== "landmark") {
+      groupVisibleLandmarksByView(currentViewMode).forEach((group) => {
+        const marker = new markerApi.AdvancedMarkerElement({
+          map,
+          position: { lat: group.lat, lng: group.lng },
+          title: tf("groupSummary", group.items.length, group.label),
+          content: createGoogleGroupMarkerContent(group),
+        });
+        marker.addListener("click", () => focusViewGroup(group));
+        markersById.set(`group-${group.mode}-${group.key}`, { marker, group });
+      });
+      return;
+    }
+
     visibleLandmarks.forEach((landmark) => {
       const marker = new markerApi.AdvancedMarkerElement({
         map,
@@ -1768,6 +1886,110 @@
       .sort((a, b) => b.items.length - a.items.length || a.city.localeCompare(b.city));
   }
 
+  function groupVisibleLandmarksByView(viewMode) {
+    const groups = new Map();
+
+    visibleLandmarks.forEach((landmark) => {
+      const key = groupKeyForView(landmark, viewMode);
+      if (!groups.has(key)) {
+        groups.set(key, createViewGroup(key, landmark, viewMode));
+      }
+
+      const group = groups.get(key);
+      group.items.push(landmark);
+      group.coordinates.set(`${landmark.country}-${landmark.city}`, {
+        lat: landmark.lat,
+        lng: landmark.lng,
+      });
+    });
+
+    return [...groups.values()]
+      .map((group) => {
+        const coordinates = [...group.coordinates.values()];
+        const lat = coordinates.reduce((sum, point) => sum + point.lat, 0) / coordinates.length;
+        const lng = coordinates.reduce((sum, point) => sum + point.lng, 0) / coordinates.length;
+
+        return {
+          ...group,
+          lat,
+          lng,
+          category: dominantCategory(group.items),
+          meta: viewGroupMeta(group),
+        };
+      })
+      .sort((a, b) => b.items.length - a.items.length || a.sortLabel.localeCompare(b.sortLabel));
+  }
+
+  function groupKeyForView(landmark, viewMode) {
+    if (viewMode === "continent") {
+      return landmark.continent;
+    }
+
+    if (viewMode === "country") {
+      return landmark.country;
+    }
+
+    return `${landmark.country}-${landmark.city}`;
+  }
+
+  function createViewGroup(key, landmark, viewMode) {
+    if (viewMode === "continent") {
+      return {
+        key,
+        mode: viewMode,
+        label: continentLabelFor(landmark.continent),
+        sortLabel: continentLabelFor(landmark.continent),
+        continent: landmark.continent,
+        items: [],
+        coordinates: new Map(),
+      };
+    }
+
+    if (viewMode === "country") {
+      return {
+        key,
+        mode: viewMode,
+        label: countryLabelFor(landmark.country),
+        sortLabel: countryLabelFor(landmark.country),
+        continent: landmark.continent,
+        country: landmark.country,
+        items: [],
+        coordinates: new Map(),
+      };
+    }
+
+    return {
+      key,
+      mode: viewMode,
+      label: landmark.city,
+      sortLabel: `${countryLabelFor(landmark.country)} ${landmark.city}`,
+      continent: landmark.continent,
+      country: landmark.country,
+      city: landmark.city,
+      items: [],
+      coordinates: new Map(),
+    };
+  }
+
+  function viewGroupMeta(group) {
+    const countryCount = unique(group.items.map((item) => item.country)).length;
+    const cityCount = unique(group.items.map((item) => item.city)).length;
+
+    if (group.mode === "continent") {
+      return `${formatCount(countryCount, "statCountries")} · ${formatCount(cityCount, "statCities")}`;
+    }
+
+    if (group.mode === "country") {
+      return `${continentLabelFor(group.continent)} · ${formatCount(cityCount, "statCities")}`;
+    }
+
+    return `${countryLabelFor(group.country)} · ${formatCount(group.items.length, "statLandmarks")}`;
+  }
+
+  function formatCount(count, labelKey) {
+    return `${count.toLocaleString(SUPPORTED_LANGUAGES[currentLanguage].locale)} ${t(labelKey)}`;
+  }
+
   function dominantCategory(items) {
     const counts = items.reduce((mapByCategory, item) => {
       mapByCategory.set(item.category, (mapByCategory.get(item.category) || 0) + 1);
@@ -1778,6 +2000,27 @@
 
   function renderList() {
     const fragment = document.createDocumentFragment();
+
+    if (currentViewMode !== "landmark") {
+      groupVisibleLandmarksByView(currentViewMode).forEach((group) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "landmark-row group-row";
+        row.innerHTML = `
+          ${categoryIconMarkup(group.category, "row-icon")}
+          <span>
+            <span class="row-title">${escapeHtml(group.label)}</span>
+            <span class="row-meta">${escapeHtml(group.meta)}</span>
+          </span>
+          <strong class="row-count">${group.items.length.toLocaleString(SUPPORTED_LANGUAGES[currentLanguage].locale)}</strong>
+        `;
+        row.addEventListener("click", () => focusViewGroup(group));
+        fragment.appendChild(row);
+      });
+
+      elements.landmarkList.replaceChildren(fragment);
+      return;
+    }
 
     visibleLandmarks.forEach((landmark) => {
       const row = document.createElement("button");
@@ -1841,6 +2084,22 @@
     return marker;
   }
 
+  function createGoogleGroupMarkerContent(group) {
+    const marker = document.createElement("button");
+    marker.type = "button";
+    marker.className = "google-group-marker";
+    marker.title = tf("groupSummary", group.items.length, group.label);
+    marker.innerHTML = `
+      <span>${group.items.length.toLocaleString(SUPPORTED_LANGUAGES[currentLanguage].locale)}</span>
+      <strong>${escapeHtml(group.label)}</strong>
+    `;
+    marker.addEventListener("click", (event) => {
+      event.stopPropagation();
+      focusViewGroup(group);
+    });
+    return marker;
+  }
+
   function createOpenMapLandmarkIcon(landmark) {
     return L.divIcon({
       className: "openmap-marker-wrap",
@@ -1872,6 +2131,25 @@
       iconSize: [88, 58],
       iconAnchor: [44, 36],
       popupAnchor: [0, -38],
+    });
+  }
+
+  function createOpenMapGroupIcon(group) {
+    return L.divIcon({
+      className: "openmap-marker-wrap",
+      html: `
+        <span class="openmap-city-marker openmap-group-marker">
+          <span class="city-miniature" aria-hidden="true">
+            <img src="assets/miniatures/types/${escapeHtml(categoryIconType(group.category))}.svg" alt="" loading="lazy" />
+            <strong>${group.items.length.toLocaleString(SUPPORTED_LANGUAGES[currentLanguage].locale)}</strong>
+          </span>
+          <span class="city-marker-label">${escapeHtml(group.label)}</span>
+          <span class="city-marker-hint">${escapeHtml(t("groupZoomPrompt"))}</span>
+        </span>
+      `,
+      iconSize: [106, 64],
+      iconAnchor: [53, 38],
+      popupAnchor: [0, -40],
     });
   }
 
@@ -1990,6 +2268,72 @@
   function categoryIconType(categoryKey) {
     const type = CATEGORY_DEFINITIONS[categoryKey]?.icon || "generic";
     return type === "culture" ? "theater" : type;
+  }
+
+  function focusViewGroup(group) {
+    if (currentProvider === "openmap") {
+      focusOpenMapGroup(group);
+      return;
+    }
+
+    focusGoogleGroup(group);
+  }
+
+  function focusOpenMapGroup(group) {
+    if (!map || !window.L) {
+      return;
+    }
+
+    scrollMapIntoView();
+    const bounds = L.latLngBounds(group.items.map((item) => [item.plotLat, item.plotLng]));
+
+    if (group.items.length === 1) {
+      const [landmark] = group.items;
+      map.flyTo([landmark.plotLat, landmark.plotLng], groupMaxZoom(group), { duration: 0.3 });
+      return;
+    }
+
+    map.fitBounds(bounds, {
+      padding: [58, 58],
+      maxZoom: groupMaxZoom(group),
+    });
+  }
+
+  function focusGoogleGroup(group) {
+    if (!map || !mapsApi?.LatLngBounds) {
+      showApiKeyPanel("apiLoadMapFirst", false);
+      return;
+    }
+
+    if (group.items.length === 1) {
+      const [landmark] = group.items;
+      map.panTo({ lat: landmark.plotLat, lng: landmark.plotLng });
+      map.setZoom(groupMaxZoom(group));
+      return;
+    }
+
+    const bounds = new mapsApi.LatLngBounds();
+    group.items.forEach((item) => {
+      bounds.extend({ lat: item.plotLat, lng: item.plotLng });
+    });
+    map.fitBounds(bounds, 64);
+    google.maps.event.addListenerOnce(map, "idle", () => {
+      if ((map.getZoom() || DEFAULT_ZOOM) > groupMaxZoom(group)) {
+        map.setZoom(groupMaxZoom(group));
+      }
+    });
+  }
+
+  function groupMaxZoom(group) {
+    if (group.mode === "city") {
+      return 13;
+    }
+
+    if (group.mode === "country") {
+      return 7;
+    }
+
+    return 4;
   }
 
   function focusLandmark(id) {

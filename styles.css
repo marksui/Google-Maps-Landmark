@@ -603,11 +603,30 @@ h1 {
   text-align: left;
 }
 
+.landmark-row.group-row {
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+}
+
 .landmark-row:hover,
 .landmark-row:focus-visible {
   border-color: var(--line);
   background: rgba(255, 255, 255, 0.05);
   outline: none;
+}
+
+.row-count {
+  display: inline-grid;
+  min-width: 34px;
+  height: 28px;
+  place-items: center;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: #fff;
+  font-size: 0.72rem;
+  line-height: 1;
 }
 
 .row-icon {
@@ -782,6 +801,10 @@ h1 {
 
 .openmap-city-marker {
   width: 86px;
+}
+
+.openmap-group-marker {
+  width: 104px;
 }
 
 .openmap-marker-wrap:hover .openmap-landmark-marker,
@@ -1010,6 +1033,48 @@ h1 {
 .google-result-marker:focus-visible {
   outline: none;
   transform: scale(1.18);
+}
+
+.google-group-marker {
+  display: grid;
+  min-width: 76px;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--panel-raised), var(--panel));
+  color: #fff;
+  box-shadow: var(--shadow-tight);
+  cursor: pointer;
+  line-height: 1.05;
+}
+
+.google-group-marker span {
+  display: grid;
+  min-width: 28px;
+  height: 24px;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.google-group-marker strong {
+  max-width: 92px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.google-group-marker:hover,
+.google-group-marker:focus-visible {
+  outline: none;
+  transform: scale(1.08);
 }
 
 .popup-card {
