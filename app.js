@@ -1,9 +1,31 @@
 (function () {
+  const GOOGLE_PLACE_ICON_BASE = "https://maps.gstatic.com/mapfiles/place_api/icons/v2/";
+  const PLACE_ICONS = {
+    museum: { label: "Museum", file: "museum_pinlet.svg", color: "#13B5C7" },
+    historic: { label: "Historic", file: "historic_pinlet.svg", color: "#13B5C7" },
+    monument: { label: "Monument", file: "monument_pinlet.svg", color: "#7B9EB0" },
+    civic: { label: "Civic building", file: "civic-bldg_pinlet.svg", color: "#7B9EB0" },
+    library: { label: "Library", file: "library_pinlet.svg", color: "#7B9EB0" },
+    worshipChristian: { label: "Worship", file: "worship_christian_pinlet.svg", color: "#7B9EB0" },
+    worshipHindu: { label: "Worship", file: "worship_hindu_pinlet.svg", color: "#7B9EB0" },
+    worshipIslam: { label: "Worship", file: "worship_islam_pinlet.svg", color: "#7B9EB0" },
+    theater: { label: "Theater", file: "theater_pinlet.svg", color: "#13B5C7" },
+    stadium: { label: "Stadium", file: "stadium_pinlet.svg", color: "#4DB546" },
+    aquarium: { label: "Aquarium", file: "dolphin_pinlet.svg", color: "#13B5C7" },
+    park: { label: "Park", file: "tree_pinlet.svg", color: "#4DB546" },
+    school: { label: "School", file: "school_pinlet.svg", color: "#7B9EB0" },
+    generic: { label: "Place", file: "generic_pinlet.svg", color: "#7B9EB0" },
+  };
+
+  Object.values(PLACE_ICONS).forEach((icon) => {
+    icon.url = `${GOOGLE_PLACE_ICON_BASE}${icon.file}`;
+  });
+
   const CATEGORY_DEFINITIONS = {
     museum: {
       label: "博物馆/美术馆",
-      icon: "fa-landmark",
-      color: "#246bfe",
+      icon: "museum",
+      color: PLACE_ICONS.museum.color,
       keywords: [
         "museum",
         "museo",
@@ -28,8 +50,8 @@
     },
     faith: {
       label: "宗教建筑",
-      icon: "fa-place-of-worship",
-      color: "#8b5cf6",
+      icon: "worshipChristian",
+      color: PLACE_ICONS.worshipChristian.color,
       keywords: [
         "basilica",
         "basilique",
@@ -64,8 +86,8 @@
     },
     palace: {
       label: "宫殿/城堡",
-      icon: "fa-chess-rook",
-      color: "#c2410c",
+      icon: "historic",
+      color: PLACE_ICONS.historic.color,
       keywords: [
         "palace",
         "palais",
@@ -90,8 +112,8 @@
     },
     tower: {
       label: "高塔/天际线",
-      icon: "fa-tower-observation",
-      color: "#0891b2",
+      icon: "historic",
+      color: PLACE_ICONS.historic.color,
       keywords: [
         "tower",
         "torre",
@@ -111,8 +133,8 @@
     },
     monument: {
       label: "纪念碑/广场",
-      icon: "fa-monument",
-      color: "#0f766e",
+      icon: "monument",
+      color: PLACE_ICONS.monument.color,
       keywords: [
         "monument",
         "memorial",
@@ -138,8 +160,8 @@
     },
     civic: {
       label: "市政/公共建筑",
-      icon: "fa-building-columns",
-      color: "#4f46e5",
+      icon: "civic",
+      color: PLACE_ICONS.civic.color,
       keywords: [
         "city hall",
         "rathaus",
@@ -161,8 +183,8 @@
     },
     culture: {
       label: "剧院/文化",
-      icon: "fa-masks-theater",
-      color: "#db2777",
+      icon: "theater",
+      color: PLACE_ICONS.theater.color,
       keywords: [
         "theatre",
         "theater",
@@ -181,8 +203,8 @@
     },
     science: {
       label: "科学/教育",
-      icon: "fa-flask",
-      color: "#16a34a",
+      icon: "museum",
+      color: PLACE_ICONS.museum.color,
       keywords: [
         "science",
         "technology",
@@ -198,14 +220,14 @@
     },
     sports: {
       label: "体育场馆",
-      icon: "fa-futbol",
-      color: "#ea580c",
+      icon: "stadium",
+      color: PLACE_ICONS.stadium.color,
       keywords: ["stadium", "estadio", "camp nou", "maracanã", "football"],
     },
     landmark: {
       label: "其他地标",
-      icon: "fa-location-dot",
-      color: "#475569",
+      icon: "generic",
+      color: PLACE_ICONS.generic.color,
       keywords: [],
     },
   };
@@ -396,17 +418,21 @@
 
         const coordinates = cityCoordinates[currentCity];
         const category = detectCategory(line);
-        records.push({
+        const placeIcon = detectPlaceIcon(line, category);
+        const record = {
           id: slugify(`${currentContinent}-${currentCountry}-${currentCity}-${line}-${records.length}`),
           name: line,
           continent: currentContinent,
           country: currentCountry,
           city: currentCity,
           category,
+          placeIcon,
           lat: coordinates.lat,
           lng: coordinates.lng,
           searchText: `${line} ${currentCity} ${currentCountry} ${currentContinent}`.toLowerCase(),
-        });
+        };
+        record.description = createDescription(record);
+        records.push(record);
       });
 
     return records;
@@ -419,6 +445,88 @@
         CATEGORY_DEFINITIONS[key].keywords.some((keyword) => text.includes(keyword.toLowerCase())),
       ) || "landmark"
     );
+  }
+
+  function detectPlaceIcon(name, categoryKey) {
+    const text = ` ${name.toLowerCase()} `;
+    if (matches(text, ["aquarium", "biodome"])) return "aquarium";
+    if (matches(text, ["library", "biblioteca", "bibliothek", "bibliotek", "bibliotheek"])) return "library";
+    if (matches(text, ["stadium", "estadio", "camp nou", "maracanã", "maracana"])) return "stadium";
+    if (matches(text, ["park", "gardens", "garden", "jardim", "botanical", "bo-kaap", "cape point"])) return "park";
+    if (matches(text, ["school", "university", "ubc", "karnataka", "college"])) return "school";
+    if (matches(text, ["mosque", "camii", "masjid", "jamek", "dargah", "jaffali", "rahmah"])) {
+      return "worshipIslam";
+    }
+    if (
+      matches(text, [
+        "temple",
+        "mandir",
+        "shri ",
+        "sri ",
+        "pura ",
+        "wat ",
+        "jingu",
+        "jinja",
+        "buddha",
+        "pagoda",
+        "iskcon",
+        "shrine",
+        "taisha",
+        "sensō",
+        "senso",
+      ])
+    ) {
+      return "worshipHindu";
+    }
+    if (
+      matches(text, [
+        "basilica",
+        "basilique",
+        "cathedral",
+        "catedral",
+        "cathédrale",
+        "church",
+        "kirche",
+        "crkva",
+        "abbey",
+        "oratory",
+        "chapel",
+        "duomo",
+        "domkirke",
+        "eglise",
+        "église",
+        "minster",
+        "saint ",
+        "sankt ",
+        "st. ",
+      ])
+    ) {
+      return "worshipChristian";
+    }
+
+    const category = CATEGORY_DEFINITIONS[categoryKey];
+    return category?.icon || "generic";
+  }
+
+  function matches(text, keywords) {
+    return keywords.some((keyword) => text.includes(keyword));
+  }
+
+  function createDescription(landmark) {
+    const cityCountry = `${landmark.city}，${landmark.country}`;
+    const descriptions = {
+      museum: `${landmark.name} 是位于 ${cityCountry} 的博物馆或美术馆类地标，适合了解当地艺术、历史、科学或文化收藏。`,
+      faith: `${landmark.name} 是位于 ${cityCountry} 的宗教建筑地标，常以礼仪空间、建筑细节和城市历史吸引游客。`,
+      palace: `${landmark.name} 是位于 ${cityCountry} 的宫殿或城堡类景点，通常承载当地王室、政治或防御历史。`,
+      tower: `${landmark.name} 是位于 ${cityCountry} 的塔楼或天际线地标，常用于俯瞰城市和辨认城市轮廓。`,
+      monument: `${landmark.name} 是位于 ${cityCountry} 的纪念性地标，记录城市历史、重要人物或公共记忆。`,
+      civic: `${landmark.name} 是位于 ${cityCountry} 的公共建筑地标，体现城市治理、公共服务或国家象征。`,
+      culture: `${landmark.name} 是位于 ${cityCountry} 的文化演出或艺术空间，常承载剧院、音乐和城市活动。`,
+      science: `${landmark.name} 是位于 ${cityCountry} 的科学或教育类景点，适合探索自然、科技、工业或航天主题。`,
+      sports: `${landmark.name} 是位于 ${cityCountry} 的体育场馆地标，常与大型赛事和城市体育文化相关。`,
+      landmark: `${landmark.name} 是位于 ${cityCountry} 的城市地标，适合加入地图清单进行打卡和路线规划。`,
+    };
+    return descriptions[landmark.category] || descriptions.landmark;
   }
 
   function addCityOffsets(records) {
@@ -477,7 +585,7 @@
 
     visibleLandmarks.forEach((landmark) => {
       const marker = L.marker([landmark.plotLat, landmark.plotLng], {
-        icon: createMarkerIcon(landmark.category),
+        icon: createMarkerIcon(landmark.placeIcon),
         title: landmark.name,
       }).bindPopup(createPopup(landmark));
       markersById.set(landmark.id, marker);
@@ -493,9 +601,8 @@
       const row = document.createElement("button");
       row.type = "button";
       row.className = "landmark-row";
-      row.style.setProperty("--marker-color", category.color);
       row.innerHTML = `
-        <span class="row-icon"><i class="fa-solid ${category.icon}" aria-hidden="true"></i></span>
+        ${placeIconMarkup(landmark.placeIcon, "row-icon")}
         <span>
           <span class="row-title">${escapeHtml(landmark.name)}</span>
           <span class="row-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)} · ${escapeHtml(category.label)}</span>
@@ -520,9 +627,8 @@
       const category = CATEGORY_DEFINITIONS[key];
       const chip = document.createElement("span");
       chip.className = "legend-chip";
-      chip.style.setProperty("--marker-color", category.color);
       chip.innerHTML = `
-        <span class="legend-dot"><i class="fa-solid ${category.icon}" aria-hidden="true"></i></span>
+        ${placeIconMarkup(category.icon, "legend-dot")}
         ${escapeHtml(category.label)}
       `;
       fragment.appendChild(chip);
@@ -539,13 +645,12 @@
   }
 
   function createMarkerIcon(categoryKey) {
-    const category = CATEGORY_DEFINITIONS[categoryKey] || CATEGORY_DEFINITIONS.landmark;
     return L.divIcon({
       className: "",
-      html: `<span class="landmark-marker" style="--marker-color:${category.color}"><i class="fa-solid ${category.icon}" aria-hidden="true"></i></span>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 17],
-      popupAnchor: [0, -16],
+      html: placeIconMarkup(categoryKey, "landmark-marker"),
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -14],
     });
   }
 
@@ -555,20 +660,30 @@
     return `
       <article class="popup-card">
         <div class="popup-head">
-          <span class="popup-icon" style="--marker-color:${category.color}">
-            <i class="fa-solid ${category.icon}" aria-hidden="true"></i>
-          </span>
+          ${placeIconMarkup(landmark.placeIcon, "popup-icon", landmark.name)}
           <div>
             <h2 class="popup-title">${escapeHtml(landmark.name)}</h2>
             <p class="popup-meta">${escapeHtml(landmark.city)} · ${escapeHtml(landmark.country)}</p>
           </div>
         </div>
         <p class="popup-meta">${escapeHtml(landmark.continent)} · ${escapeHtml(category.label)}</p>
+        <p class="popup-description">${escapeHtml(landmark.description)}</p>
         <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${mapsQuery}" target="_blank" rel="noreferrer">
           <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
           Google Maps
         </a>
       </article>
+    `;
+  }
+
+  function placeIconMarkup(iconKey, className, altText = "") {
+    const icon = PLACE_ICONS[iconKey] || PLACE_ICONS.generic;
+    const alt = altText ? escapeHtml(`${altText} icon`) : "";
+    const hidden = altText ? "" : ' aria-hidden="true"';
+    return `
+      <span class="${className}" style="--marker-color:${icon.color}"${hidden}>
+        <img src="${icon.url}" alt="${alt}" loading="lazy" />
+      </span>
     `;
   }
 
