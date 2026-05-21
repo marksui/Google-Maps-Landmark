@@ -4,6 +4,7 @@
   const DEFAULT_MAP_PROVIDER = "offline";
   const MAP_PROVIDER_STORAGE = "landmarkMapProvider";
   const MAP_PROVIDERS = ["offline", "google"];
+  const OFFLINE_INDIVIDUAL_LIMIT = 140;
   const SUPPORTED_LANGUAGES = {
     zh: { label: "中文", htmlLang: "zh-CN", mapsLanguage: "zh-CN", locale: "zh-CN" },
     en: { label: "English", htmlLang: "en", mapsLanguage: "en", locale: "en-US" },
@@ -99,7 +100,7 @@
       allCategories: "全部图标类型",
       noteTitle: "说明",
       noteBodyOffline:
-        "当前使用本地离线示意地图，不加载 Google Maps API；灰白地标 miniature 来自本地 SVG，点位使用城市级坐标展开。",
+        "当前使用本地离线示意地图，不加载 Google Maps API；默认按城市聚合防止卡死，搜索或筛选后展开单个灰白 miniature。",
       noteBodyGoogle:
         "地图底图由 Google Maps 官方 API 实时渲染；列表点位使用城市级坐标展开，点击点位可查看图片、分类和一句短介绍。",
       apiKeyLabel: "Google Maps API key",
@@ -113,6 +114,8 @@
       apiLoadMapFirst: "先加载 Google Maps 官方地图。",
       googleUnavailable: "Google 地图没加载成功，已切回本地离线地图。",
       closePopup: "关闭",
+      clusterSummary: (count, city) => `${city} · ${count} 个地标`,
+      zoomPrompt: "搜索或筛选后会展开单个地标 miniature。",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "在 Google Maps 打开",
       continents: {
@@ -179,7 +182,7 @@
       allCategories: "All icon types",
       noteTitle: "Note",
       noteBodyOffline:
-        "The current map is a local offline schematic. It does not load Google Maps API; gray landmark miniatures are local SVG files and points use city-level anchors.",
+        "The current map is a local offline schematic. It does not load Google Maps API; it clusters by city by default and expands gray miniatures after search or filtering.",
       noteBodyGoogle:
         "The base map is rendered live by the official Google Maps API. List points use city-level anchors, and each popup shows an image, category, and short description.",
       apiKeyLabel: "Google Maps API key",
@@ -193,6 +196,8 @@
       apiLoadMapFirst: "Load the official Google map first.",
       googleUnavailable: "Google Maps did not load, so the app switched back to the local offline map.",
       closePopup: "Close",
+      clusterSummary: (count, city) => `${city} · ${count} landmarks`,
+      zoomPrompt: "Search or filter to expand individual landmark miniatures.",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Open in Google Maps",
       continents: {
@@ -259,7 +264,7 @@
       allCategories: "すべての種類",
       noteTitle: "説明",
       noteBodyOffline:
-        "現在の地図はローカルのオフライン模式図です。Google Maps API は読み込まず、灰色のランドマーク miniature はローカル SVG、地点は都市レベルの座標で配置しています。",
+        "現在の地図はローカルのオフライン模式図です。Google Maps API は読み込まず、初期表示は都市ごとに集約し、検索や絞り込み後に灰色の miniature を展開します。",
       noteBodyGoogle:
         "ベースマップは Google Maps 公式 API でリアルタイムに描画されます。一覧の地点は都市レベルの座標をもとに配置され、ポップアップには画像、分類、短い説明が表示されます。",
       apiKeyLabel: "Google Maps API キー",
@@ -273,6 +278,8 @@
       apiLoadMapFirst: "先に Google 公式地図を読み込んでください。",
       googleUnavailable: "Google Maps を読み込めなかったため、ローカルのオフライン地図に切り替えました。",
       closePopup: "閉じる",
+      clusterSummary: (count, city) => `${city} · ${count} 件のランドマーク`,
+      zoomPrompt: "検索または絞り込みで個別のランドマーク miniature を展開します。",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Google Maps で開く",
       continents: {
@@ -339,7 +346,7 @@
       allCategories: "Todos los tipos",
       noteTitle: "Nota",
       noteBodyOffline:
-        "El mapa actual es un esquema local sin conexión. No carga Google Maps API; las miniaturas grises son SVG locales y los puntos usan coordenadas a nivel de ciudad.",
+        "El mapa actual es un esquema local sin conexión. No carga Google Maps API; agrupa por ciudad al inicio y despliega miniaturas grises al buscar o filtrar.",
       noteBodyGoogle:
         "El mapa base se renderiza en tiempo real con la API oficial de Google Maps. Los puntos de la lista usan coordenadas a nivel de ciudad, y cada ventana muestra imagen, categoría y una breve descripción.",
       apiKeyLabel: "Clave de API de Google Maps",
@@ -353,6 +360,8 @@
       apiLoadMapFirst: "Carga primero el mapa oficial de Google.",
       googleUnavailable: "Google Maps no se cargó, así que la app volvió al mapa local sin conexión.",
       closePopup: "Cerrar",
+      clusterSummary: (count, city) => `${city} · ${count} lugares`,
+      zoomPrompt: "Busca o filtra para desplegar miniaturas individuales.",
       mediaSource: "Wikipedia / Wikimedia",
       openGoogleMaps: "Abrir en Google Maps",
       continents: {
@@ -897,15 +906,9 @@
   }
 
   function getInitialProvider() {
-    let storedProvider = "";
-
-    try {
-      storedProvider = localStorage.getItem(MAP_PROVIDER_STORAGE) || "";
-    } catch (error) {
-      storedProvider = "";
-    }
-
-    return MAP_PROVIDERS.includes(storedProvider) ? storedProvider : DEFAULT_MAP_PROVIDER;
+    const params = new URLSearchParams(window.location.search);
+    const requestedProvider = (params.get("provider") || params.get("mapProvider") || "").trim();
+    return MAP_PROVIDERS.includes(requestedProvider) ? requestedProvider : DEFAULT_MAP_PROVIDER;
   }
 
   function normalizeLanguage(value) {
@@ -924,6 +927,11 @@
 
   function t(key) {
     return currentTranslations()[key] || I18N[DEFAULT_LANGUAGE][key] || key;
+  }
+
+  function tf(key, ...args) {
+    const value = t(key);
+    return typeof value === "function" ? value(...args) : value;
   }
 
   function continentLabelFor(continent, language = currentLanguage) {
@@ -1326,8 +1334,15 @@
       return;
     }
 
+    clearOfflinePopups();
     surface.querySelectorAll(".offline-marker").forEach((marker) => marker.remove());
+    surface.querySelectorAll(".offline-city-marker").forEach((marker) => marker.remove());
     markersById.clear();
+
+    if (visibleLandmarks.length > OFFLINE_INDIVIDUAL_LIMIT) {
+      renderOfflineCityMarkers(surface);
+      return;
+    }
 
     visibleLandmarks.forEach((landmark) => {
       const marker = document.createElement("button");
@@ -1345,6 +1360,65 @@
       surface.appendChild(marker);
       markersById.set(landmark.id, { marker, landmark });
     });
+  }
+
+  function renderOfflineCityMarkers(surface) {
+    const groups = groupVisibleLandmarksByCity();
+
+    groups.forEach((group) => {
+      const marker = document.createElement("button");
+      const { x, y } = projectCoordinates(group.lat, group.lng);
+      marker.type = "button";
+      marker.className = "offline-city-marker";
+      marker.title = tf("clusterSummary", group.items.length, group.city);
+      marker.style.left = `${x}%`;
+      marker.style.top = `${y}%`;
+      marker.innerHTML = `
+        <span class="city-miniature" aria-hidden="true">
+          <img src="assets/miniatures/types/${escapeHtml(categoryIconType(group.category))}.svg" alt="" loading="lazy" />
+          <strong>${group.items.length}</strong>
+        </span>
+        <span class="city-marker-label">${escapeHtml(group.city)}</span>
+        <span class="city-marker-hint">${escapeHtml(t("zoomPrompt"))}</span>
+      `;
+      marker.addEventListener("click", () => openOfflineGroupPopup(marker, group));
+      surface.appendChild(marker);
+    });
+  }
+
+  function groupVisibleLandmarksByCity() {
+    const groups = new Map();
+
+    visibleLandmarks.forEach((landmark) => {
+      const key = `${landmark.country}-${landmark.city}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          key,
+          city: landmark.city,
+          country: landmark.country,
+          continent: landmark.continent,
+          lat: landmark.lat,
+          lng: landmark.lng,
+          items: [],
+        });
+      }
+      groups.get(key).items.push(landmark);
+    });
+
+    return [...groups.values()]
+      .map((group) => ({
+        ...group,
+        category: dominantCategory(group.items),
+      }))
+      .sort((a, b) => b.items.length - a.items.length || a.city.localeCompare(b.city));
+  }
+
+  function dominantCategory(items) {
+    const counts = items.reduce((mapByCategory, item) => {
+      mapByCategory.set(item.category, (mapByCategory.get(item.category) || 0) + 1);
+      return mapByCategory;
+    }, new Map());
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "landmark";
   }
 
   function renderList() {
@@ -1467,6 +1541,74 @@
     offlinePopup.querySelector(".offline-popup-close")?.addEventListener("click", closeOfflinePopup);
   }
 
+  function openOfflineGroupPopup(marker, group) {
+    if (!offlinePopup) {
+      return;
+    }
+
+    closeOfflinePopup();
+    marker.classList.add("active");
+    offlinePopup.innerHTML = `
+      <button class="offline-popup-close" type="button" aria-label="${escapeHtml(t("closePopup"))}">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <article class="popup-card city-popup-card">
+        <div class="popup-head">
+          ${categoryIconMarkup(group.category, "popup-icon")}
+          <div>
+            <h2 class="popup-title">${escapeHtml(group.city)}</h2>
+            <p class="popup-meta">${escapeHtml(countryLabelFor(group.country))} · ${escapeHtml(tf("clusterSummary", group.items.length, group.city))}</p>
+          </div>
+        </div>
+        <div class="city-popup-list">
+          ${group.items
+            .map(
+              (landmark) => `
+                <button class="city-popup-item" type="button" data-landmark-id="${escapeHtml(landmark.id)}">
+                  ${categoryIconMarkup(landmark.category, "legend-dot")}
+                  <span>${escapeHtml(landmark.name)}</span>
+                </button>
+              `,
+            )
+            .join("")}
+        </div>
+      </article>
+    `;
+    offlinePopup.style.left = marker.style.left;
+    offlinePopup.style.top = marker.style.top;
+    offlinePopup.classList.remove("hidden");
+    offlinePopup.querySelector(".offline-popup-close")?.addEventListener("click", closeOfflinePopup);
+    offlinePopup.querySelectorAll(".city-popup-item").forEach((button) => {
+      button.addEventListener("click", () => {
+        const landmark = group.items.find((item) => item.id === button.dataset.landmarkId);
+        if (landmark) {
+          openOfflineLandmarkAtPosition(landmark);
+        }
+      });
+    });
+  }
+
+  function openOfflineLandmarkAtPosition(landmark) {
+    if (!offlinePopup) {
+      return;
+    }
+
+    markersById.forEach(({ marker }) => {
+      marker.classList?.remove("active");
+    });
+    const { x, y } = projectCoordinates(landmark.plotLat, landmark.plotLng);
+    offlinePopup.innerHTML = `
+      <button class="offline-popup-close" type="button" aria-label="${escapeHtml(t("closePopup"))}">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      ${createPopup(landmark)}
+    `;
+    offlinePopup.style.left = `${x}%`;
+    offlinePopup.style.top = `${y}%`;
+    offlinePopup.classList.remove("hidden");
+    offlinePopup.querySelector(".offline-popup-close")?.addEventListener("click", closeOfflinePopup);
+  }
+
   function closeOfflinePopup() {
     if (offlinePopup) {
       offlinePopup.classList.add("hidden");
@@ -1475,6 +1617,17 @@
     markersById.forEach(({ marker }) => {
       marker.classList?.remove("active");
     });
+    elements.map.querySelectorAll(".offline-city-marker.active").forEach((marker) => {
+      marker.classList.remove("active");
+    });
+  }
+
+  function clearOfflinePopups() {
+    if (!offlinePopup) {
+      return;
+    }
+    offlinePopup.classList.add("hidden");
+    offlinePopup.replaceChildren();
   }
 
   function showMapToast(messageKey) {
@@ -1528,11 +1681,21 @@
     `;
   }
 
+  function categoryIconType(categoryKey) {
+    const type = CATEGORY_DEFINITIONS[categoryKey]?.icon || "generic";
+    return type === "culture" ? "theater" : type;
+  }
+
   function focusLandmark(id) {
     if (currentProvider === "offline") {
       const entry = markersById.get(id);
       if (entry) {
         openOfflinePopup(entry.marker, entry.landmark);
+        return;
+      }
+      const landmark = visibleLandmarks.find((item) => item.id === id) || landmarks.find((item) => item.id === id);
+      if (landmark) {
+        openOfflineLandmarkAtPosition(landmark);
       }
       return;
     }

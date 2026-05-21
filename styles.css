@@ -533,6 +533,102 @@ h1 {
   transform: translate(-50%, -50%) scale(1.14);
 }
 
+.offline-city-marker {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  width: 98px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.city-miniature {
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 40px;
+}
+
+.city-miniature img {
+  display: block;
+  width: 56px;
+  height: 38px;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 1px 1px rgba(32, 33, 36, 0.78))
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.92));
+}
+
+.city-miniature strong {
+  position: absolute;
+  right: -6px;
+  bottom: 0;
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #5f6368;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(32, 33, 36, 0.38);
+}
+
+.city-marker-label,
+.city-marker-hint {
+  display: -webkit-box;
+  max-width: 96px;
+  overflow: hidden;
+  line-height: 1.08;
+  text-shadow:
+    -1px -1px 0 #202124,
+    1px -1px 0 #202124,
+    -1px 1px 0 #202124,
+    1px 1px 0 #202124,
+    0 2px 3px rgba(0, 0, 0, 0.45);
+  -webkit-box-orient: vertical;
+}
+
+.city-marker-label {
+  margin-top: 1px;
+  font-size: clamp(0.64rem, 0.82vw, 0.84rem);
+  font-weight: 900;
+  -webkit-line-clamp: 1;
+}
+
+.city-marker-hint {
+  margin-top: 2px;
+  opacity: 0;
+  font-size: 0.58rem;
+  font-weight: 800;
+  -webkit-line-clamp: 2;
+  transition: opacity 0.16s ease;
+}
+
+.offline-city-marker:hover,
+.offline-city-marker:focus-visible,
+.offline-city-marker.active {
+  z-index: 6;
+  outline: none;
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.offline-city-marker:hover .city-marker-hint,
+.offline-city-marker:focus-visible .city-marker-hint,
+.offline-city-marker.active .city-marker-hint {
+  opacity: 1;
+}
+
 .offline-popup {
   position: absolute;
   z-index: 8;
@@ -562,6 +658,48 @@ h1 {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
+}
+
+.city-popup-card {
+  min-width: 260px;
+}
+
+.city-popup-list {
+  display: grid;
+  gap: 4px;
+  max-height: 290px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.city-popup-item {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  align-items: center;
+  min-height: 34px;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.city-popup-item:hover,
+.city-popup-item:focus-visible {
+  background: #eef4ff;
+  outline: none;
+}
+
+.city-popup-item span:last-child {
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .map-toast {
